@@ -1,6 +1,19 @@
-#root {
-  
-  margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
+/* 앱 전체 초기화 */
+html, body, #root {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  background-color: #fff;
+  font-family: "Noto Sans KR", sans-serif;
+  color: #000;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
 }
