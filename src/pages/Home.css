@@ -1,0 +1,120 @@
+/* Home.css - 전체화면 대응 및 간단한 레이아웃 */
+
+html, body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    font-family: sans-serif;
+    background-color: #f4f4f4;
+    box-sizing: border-box;
+  }
+  
+  *, *::before, *::after {
+    box-sizing: inherit;
+  }
+  
+  .main-container {
+    width: 100%;
+    min-height: 100vh;
+    background-color: #ffffff;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .main-header {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+    background-color: #ffffff;
+    border-bottom: 1px solid #ddd;
+  }
+  
+  .logo {
+    font-size: 24px;
+    color: #047857;
+    margin-right: 40px;
+  }
+  
+  .nav-links {
+    display: flex;
+    gap: 20px;
+  }
+  
+  .nav-links a {
+    text-decoration: none;
+    color: #333;
+    font-size: 16px;
+  }
+  
+  .header-left {
+    display: flex;
+    align-items: center;
+  }
+  
+  .header-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+  }
+  
+  .main-section {
+    flex: 1;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    padding: 40px;
+    width: 100%;
+    gap: 40px;
+    box-sizing: border-box;
+  }
+  
+  .text-section {
+    flex: 1;
+    padding-right: 40px;
+  }
+  
+  .main-title {
+    font-size: 28px;
+    margin-bottom: 20px;
+    color: #222;
+  }
+  
+  .features-list {
+    list-style: none;
+    padding-left: 0;
+    margin-bottom: 20px;
+    font-size: 16px;
+    line-height: 1.8;
+    color: #444;
+  }
+  
+  .start-button {
+    background-color: #047857;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    font-size: 16px;
+    cursor: pointer;
+  }
+  
+  .image-section {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  
+  .main-image {
+    width: 100%;
+    max-width: 400px;
+    height: auto;
+  }
+  
+  .login-text{
+    color : black;
+  }
