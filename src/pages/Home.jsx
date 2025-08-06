@@ -2,14 +2,11 @@ import React from "react";
 import Header from "../components/Header"
 import "./Home.css"
 
-export default function Home() {
+const Home = () => {
   return (
     <div className="main-container">
-      {/* Header */}
       <Header/>
-      {/* Main Section */}
       <main className="main-section">
-        {/* Text Section */}
         <section className="text-section">
           <h2 className="main-title">스마트한 농사 커뮤니티</h2>
           <ul className="features-list">
@@ -34,3 +31,5 @@ export default function Home() {
     </div>
   );
 }
+
+export default Home
