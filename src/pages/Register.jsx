@@ -5,10 +5,13 @@ import RegisterForm from "../components/RegisterForm";
 
 const Register = () => {
   return (
+    <div className="register-page">
+    <Header />
     <div className="register-container">
-      <Header />
-      <RegisterForm />
+        <RegisterForm />
     </div>
+    </div>
+
   );
 };
 

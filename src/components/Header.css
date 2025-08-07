@@ -39,3 +39,9 @@
   .login-text{
     color : black;
   }
+
+  .login-area {
+    text-decoration: none;
+    color: inherit;
+  }
+  

@@ -17,7 +17,7 @@ const Header = () => {
         </nav>
       </div>
       <div className="header-right">
-        <Link to="/login" className="login-area">
+        <Link to="/Login" className="login-area">
           <span role="img" aria-label="login">👤</span>
           <span className="login-text">로그인</span>
         </Link>

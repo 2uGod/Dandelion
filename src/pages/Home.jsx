@@ -1,11 +1,18 @@
 import React from "react";
-import Header from "../components/Header"
-import "../styles/Home.css"
+import Header from "../components/Header";
+import "../styles/Home.css";
+import { useNavigate } from "react-router-dom";  // ✅ 추가
 
 const Home = () => {
+  const navigate = useNavigate();  // ✅ 추가
+
+  const handleStart = () => {
+    navigate("/Register");  // ✅ 페이지 이동
+  };
+
   return (
     <div className="main-container">
-      <Header/>
+      <Header />
       <main className="main-section">
         <section className="text-section">
           <h2 className="main-title">스마트한 농사 커뮤니티</h2>
@@ -16,7 +23,9 @@ const Home = () => {
             <li>📅 농사 캘린더</li>
             <li>✅ 체험 예약</li>
           </ul>
-          <button className="start-button">시작하기</button>
+          <button className="start-button" onClick={handleStart}>
+            시작하기
+          </button>
         </section>
 
         <section className="image-section">
@@ -29,6 +38,6 @@ const Home = () => {
       </main>
     </div>
   );
-}
+};
 
-export default Home
+export default Home;

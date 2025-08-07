@@ -96,7 +96,7 @@ const RegisterForm = () => {
           <p className="error-text">{errors.confirmPassword}</p>
         )}
 
-        <button type="submit">가입하기</button>
+        <button type="submit" className = "submit-button">가입하기</button>
       </form>
     </main>
   );
