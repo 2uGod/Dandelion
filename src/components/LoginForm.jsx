@@ -1,10 +1,10 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom"; // ✅ 추가
+import { useNavigate } from "react-router-dom";
 import "./LoginForm.css"
 
 const LoginForm = () => {
-  const navigate = useNavigate(); // ✅ 추가
-  const [form, setForm] = useState({ id: "", password: "", remember: false });
+  const navigate = useNavigate(); 
+  const [form, setForm] = useState({ email: "", password: "", remember: false });
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -29,9 +29,9 @@ const LoginForm = () => {
         <form onSubmit={handleSubmit} className="login-form">
           <input
             type="text"
-            name="id"
-            placeholder="아이디를 입력하세요"
-            value={form.id}
+            name="email"
+            placeholder="이메일을 입력하세요"
+            value={form.email}
             onChange={handleChange}
             required
           />
@@ -57,7 +57,6 @@ const LoginForm = () => {
           <button type="submit" className="login-button">로그인</button>
         </form>
 
-        {/* ✅ 회원가입 버튼 영역 */}
         <div className="register-link-wrapper">
           <p>계정이 없으신가요?</p>
           <button
