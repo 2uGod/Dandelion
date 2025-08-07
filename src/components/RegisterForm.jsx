@@ -7,10 +7,11 @@ const RegisterForm = () => {
     name: "",
     email: "",
     password: "",
-    confirmPassword: ""
+    confirmPassword: "",
+    userType: "user"  
   });
 
-  const [errors, setErrors] = useState({}); // 🔹 에러 메시지 상태
+  const [errors, setErrors] = useState({}); 
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -96,7 +97,31 @@ const RegisterForm = () => {
           <p className="error-text">{errors.confirmPassword}</p>
         )}
 
-        <button type="submit" className = "submit-button">가입하기</button>
+        
+        <div className="radio-row">
+          <label>
+            <input
+              type="radio"
+              name="userType"
+              value="user"
+              checked={formData.userType === "user"}
+              onChange={handleChange}
+            />
+            일반인
+          </label>
+          <label>
+            <input
+              type="radio"
+              name="userType"
+              value="expert"
+              checked={formData.userType === "expert"}
+              onChange={handleChange}
+            />
+            전문가
+          </label>
+        </div>
+
+        <button type="submit" className="submit-button">가입하기</button>
       </form>
     </main>
   );

@@ -71,6 +71,20 @@ button.submit-button:hover {
   background-color: #065f46;
 }
 
+.radio-row {
+  display: flex;
+  justify-content: center;
+  gap: 24px;
+  margin: 10px 0 20px;
+  font-size: 14px;
+  color: #333;
+}
+
+.radio-row input[type="radio"] {
+  margin-right: 6px;
+}
+
+
 /* ✅ 간단한 애니메이션 효과 */
 @keyframes fadeIn {
   from {
