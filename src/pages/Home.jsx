@@ -1,6 +1,6 @@
 import React from "react";
 import Header from "../components/Header"
-import "./Home.css"
+import "../styles/Home.css"
 
 const Home = () => {
   return (
@@ -19,7 +19,6 @@ const Home = () => {
           <button className="start-button">시작하기</button>
         </section>
 
-        {/* Image Section */}
         <section className="image-section">
           <img
             src="/main_img.png"

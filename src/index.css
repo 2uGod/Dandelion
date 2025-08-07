@@ -1,15 +1,32 @@
+/* index.css */
 :root {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
-
-  color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
-
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  --bg-color: #ffffff;
+  --text-color: #000000;
+  --card-bg: #f4f4f4;
+  --input-bg: #ffffff;
+  --button-bg: #047857;
+  --button-text: #ffffff;
+  --error-color: red;
 }
 
+/* 다크 모드 감지 시 변수 덮어쓰기 */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg-color: #1e1e1e;
+    --text-color: #f4f4f4;
+    --card-bg: #2c2c2c;
+    --input-bg: #2c2c2c;
+    --button-bg: #10b981;
+    --button-text: #ffffff;
+    --error-color: #f87171;
+  }
+}
+
+/* 전역 스타일 */
+body {
+  margin: 0;
+  padding: 0;
+  font-family: "Noto Sans KR", sans-serif;
+  background-color: var(--bg-color);
+  color: var(--text-color);
+}

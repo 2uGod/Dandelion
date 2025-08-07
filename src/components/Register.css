@@ -1,0 +1,53 @@
+/* styles/Register.css */
+.register-container {
+    padding: 20px;
+    background-color: var(--bg-color);
+    min-height: 100vh;
+    color: var(--text-color);
+  }
+  
+  .register-form-wrapper {
+    max-width: 400px;
+    margin: 0 auto;
+    background-color: var(--card-bg);
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  }
+  
+  .register-form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+  }
+  
+  .register-form input {
+    padding: 10px;
+    font-size: 14px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    background-color: var(--input-bg);
+    color: var(--text-color);
+  }
+  
+  .register-form button {
+    background-color: var(--button-bg);
+    color: var(--button-text);
+    border: none;
+    padding: 12px;
+    font-size: 16px;
+    cursor: pointer;
+    border-radius: 5px;
+    transition: background-color 0.2s;
+  }
+  
+  .register-form button:hover {
+    opacity: 0.9;
+  }
+  
+  .error-text {
+    color: var(--error-color);
+    font-size: 13px;
+    margin: -10px 0 10px;
+  }
+  
