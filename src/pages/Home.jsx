@@ -1,13 +1,13 @@
 import React from "react";
 import Header from "../components/Header";
 import "../styles/Home.css";
-import { useNavigate } from "react-router-dom";  // ✅ 추가
+import { useNavigate } from "react-router-dom";
 
 const Home = () => {
-  const navigate = useNavigate();  // ✅ 추가
+  const navigate = useNavigate();
 
   const handleStart = () => {
-    navigate("/Register");  // ✅ 페이지 이동
+    navigate("/Register");
   };
 
   return (

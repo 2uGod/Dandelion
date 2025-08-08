@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+<<<<<<< HEAD
 import api from '../api/axios';
 import { useAuth } from '../context/AuthContext';
 import "./LoginForm.css";
@@ -7,6 +8,12 @@ import "./LoginForm.css";
 const LoginForm = () => {
   const navigate = useNavigate();
   const { login } = useAuth();
+=======
+import "./LoginForm.css"
+
+const LoginForm = () => {
+  const navigate = useNavigate(); 
+>>>>>>> 0ca0014b9ade22b17736ccff4d00476a9832a861
   const [form, setForm] = useState({ email: "", password: "", remember: false });
 
   const handleChange = (e) => {
@@ -45,7 +52,11 @@ const LoginForm = () => {
 
         <form onSubmit={handleSubmit} className="login-form">
           <input
+<<<<<<< HEAD
             type="email"
+=======
+            type="text"
+>>>>>>> 0ca0014b9ade22b17736ccff4d00476a9832a861
             name="email"
             placeholder="이메일을 입력하세요"
             value={form.email}
