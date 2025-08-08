@@ -97,7 +97,6 @@ const RegisterForm = () => {
           <p className="error-text">{errors.confirmPassword}</p>
         )}
 
-        
         <div className="radio-row">
           <label>
             <input

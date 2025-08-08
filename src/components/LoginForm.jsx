@@ -1,10 +1,13 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom"; // ✅ 추가
-import "./LoginForm.css"
+import { useNavigate } from "react-router-dom";
+import api from '../api/axios';
+import { useAuth } from '../context/AuthContext';
+import "./LoginForm.css";
 
 const LoginForm = () => {
-  const navigate = useNavigate(); // ✅ 추가
-  const [form, setForm] = useState({ id: "", password: "", remember: false });
+  const navigate = useNavigate();
+  const { login } = useAuth();
+  const [form, setForm] = useState({ email: "", password: "", remember: false });
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -14,10 +17,24 @@ const LoginForm = () => {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("로그인 정보:", form);
-    alert("로그인 시도!");
+    try {
+      const response = await api.post('/users/login', {
+        email: form.email,
+        password: form.password
+      });
+
+      const { accessToken } = response.data;
+      login(accessToken);
+
+      alert("로그인에 성공했습니다!");
+      navigate('/');  //홈으로 이동 슈웃
+
+    } catch (error) {
+      const errorMessage = error.response?.data?.message || "로그인 중 오류가 발생했습니다.";
+      alert(`로그인 실패: ${errorMessage}`);
+    }
   };
 
   return (
@@ -28,10 +45,10 @@ const LoginForm = () => {
 
         <form onSubmit={handleSubmit} className="login-form">
           <input
-            type="text"
-            name="id"
-            placeholder="아이디를 입력하세요"
-            value={form.id}
+            type="email"
+            name="email"
+            placeholder="이메일을 입력하세요"
+            value={form.email}
             onChange={handleChange}
             required
           />
@@ -57,7 +74,6 @@ const LoginForm = () => {
           <button type="submit" className="login-button">로그인</button>
         </form>
 
-        {/* ✅ 회원가입 버튼 영역 */}
         <div className="register-link-wrapper">
           <p>계정이 없으신가요?</p>
           <button
