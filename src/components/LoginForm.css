@@ -44,7 +44,7 @@
   }
   
   /* 🌿 인풋 필드 */
-  .login-form input[type="text"],
+  .login-form input[type="email"],
   .login-form input[type="password"] {
     padding: 12px 14px;
     font-size: 14px;
