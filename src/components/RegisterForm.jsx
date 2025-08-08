@@ -1,14 +1,16 @@
 // components/RegisterForm.jsx
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import "./Register.css";
 
 const RegisterForm = () => {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     name: "",
     email: "",
     password: "",
     confirmPassword: "",
-    userType: "user"  
+    userType: "hobby",
   });
 
   const [errors, setErrors] = useState({}); 
@@ -43,13 +45,38 @@ const RegisterForm = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-
     if (!validate()) return;
+    const payload = {
+      nickname: formData.name,
+      email: formData.email,
+      password: formData.password,
+      userType: formData.userType,
+    };
 
-    console.log("회원가입 정보:", formData);
-    alert("회원가입 성공!");
+    try {
+      //백엔드 api로 요청
+      const response = await fetch('http://localhost:3000/users', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        alert("회원가입 성공! 로그인 페이지로 이동합니다.");
+        navigate('/login'); //회원가입 성공하면 로그인 페이지로 이동
+      } else {
+        setErrors(prev => ({ ...prev, server: result.message || '오류가 발생했습니다.' }));
+      }
+    } catch (error) {
+      console.error("회원가입 에러:", error);
+      setErrors(prev => ({ ...prev, server: "서버와 통신할 수 없습니다." }));
+    }
   };
 
   return (
@@ -102,11 +129,11 @@ const RegisterForm = () => {
             <input
               type="radio"
               name="userType"
-              value="user"
-              checked={formData.userType === "user"}
+              value="hobby" //취미반
+              checked={formData.userType === "hobby"}
               onChange={handleChange}
             />
-            일반인
+            취미반
           </label>
           <label>
             <input
@@ -119,6 +146,7 @@ const RegisterForm = () => {
             전문가
           </label>
         </div>
+        {errors.server && <p className="error-text">{errors.server}</p>}
 
         <button type="submit" className="submit-button">가입하기</button>
       </form>
