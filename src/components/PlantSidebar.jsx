@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import PlantPopup from "./PlantPopup";
+import "./PlantSidebar.css"
 
 const PlantSidebar = ({ selectedPlant, setSelectedPlant }) => {
   const [showPopup, setShowPopup] = useState(false);

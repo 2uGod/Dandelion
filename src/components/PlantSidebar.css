@@ -1,0 +1,8 @@
+.plant-sidebar{width:200px;background:#fff;padding:20px;border-right:1px solid #eee;box-shadow:2px 0 5px rgba(0,0,0,.02);display:flex;flex-direction:column;min-height:0;overflow-y:auto;}
+.plant-sidebar h3{font-size:16px;margin-bottom:10px;}
+.plant-sidebar ul{list-style:none;padding:0;margin-bottom:12px;}
+.plant-sidebar li{padding:8px 12px;margin:4px 0;border-radius:6px;transition:all .2s;cursor:pointer;}
+.plant-sidebar li:hover{background-color:#ecfdf5;}
+.plant-sidebar li.selected{background-color:#d1fae5;color:#047857;font-weight:600;border-left:4px solid #047857;}
+.plant-sidebar button{padding:8px 12px;width:100%;border:none;background:#047857;color:#fff;font-weight:bold;border-radius:6px;cursor:pointer;transition:background .2s;}
+.plant-sidebar button:hover{background-color:#065f46;}

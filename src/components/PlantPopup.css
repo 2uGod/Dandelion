@@ -1,0 +1,7 @@
+.popup-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.4);display:flex;justify-content:center;align-items:center;z-index:60;}
+.popup-content{background:#fff;padding:24px;border-radius:16px;width:320px;box-shadow:0 8px 20px rgba(0,0,0,.1);}
+.popup-content h3{margin-top:0;}
+.popup-content input{width:100%;margin-bottom:12px;padding:10px;border:1px solid #ccc;border-radius:8px;}
+.popup-content button{margin-right:8px;padding:10px 16px;border:none;border-radius:8px;cursor:pointer;}
+.popup-content button:first-of-type{background:#047857;color:#fff;}
+.popup-content button:last-of-type{background:#eee;}

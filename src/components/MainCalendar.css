@@ -1,0 +1,19 @@
+.calendar-wrapper{display:grid;grid-template-columns:1fr 360px;gap:24px;background:#fff;border-radius:16px;padding:24px;box-shadow:0 2px 8px rgba(0,0,0,.05);}
+.calendar-pane .calendar-header-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;}
+.custom-calendar.react-calendar{border:none;width:100%;font-family:-apple-system,BlinkMacSystemFont,'SF Pro','Segoe UI',sans-serif;}
+.react-calendar__tile{border-radius:8px;padding:12px 0;transition:background-color .2s;}
+.react-calendar__tile--now{background:#fef3c7;}
+.react-calendar__tile--active{background-color:#047857!important;color:#fff!important;}
+.react-calendar__tile:hover{background-color:#ecfdf5;}
+.schedule-pane{display:flex;}
+.schedule-card{background:#f9fafb;border-radius:14px;padding:16px 16px 12px;width:100%;box-shadow:0 2px 6px rgba(0,0,0,.04) inset;display:flex;flex-direction:column;}
+.schedule-head{margin-bottom:12px;}
+.schedule-title{font-weight:600;margin-bottom:4px;}
+.schedule-date{font-size:13px;color:#6b7280;}
+.schedule-empty{background:#fff;border:1px dashed #d1d5db;border-radius:12px;padding:16px;text-align:center;color:#6b7280;}
+.schedule-empty .hint{margin-top:6px;font-size:12px;color:#9ca3af;}
+.schedule-list{list-style:none;margin:0;padding:0;background:#fff;border-radius:12px;border:1px solid #e5e7eb;overflow:hidden;}
+.schedule-item{display:flex;gap:8px;align-items:center;padding:12px 14px;border-bottom:1px solid #f3f4f6;font-size:14px;color:#111827;}
+.schedule-item:last-child{border-bottom:none;}
+.schedule-item .dot{width:8px;height:8px;border-radius:999px;background:#047857;display:inline-block;}
+.schedule-actions{margin-top:12px;display:flex;gap:8px;justify-content:flex-end;}
