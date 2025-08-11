@@ -1,14 +1,15 @@
+// Header.jsx
 import "./Header.css";
 import React from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";  // ✅ 로그인 상태 context
+import { Link, NavLink, useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 
 const Header = () => {
   const { isLoggedIn, setIsLoggedIn } = useAuth();
   const navigate = useNavigate();
 
   const handleLogout = () => {
-    setIsLoggedIn(true);
+    setIsLoggedIn(false); // ← 로그아웃 시 false 로!
     alert("로그아웃 되었습니다.");
     navigate("/");
   };
@@ -21,11 +22,32 @@ const Header = () => {
             Farmunity
           </Link>
         </h1>
+
         <nav className="nav-links">
-          <Link to="/Pest">병해충 관리</Link>
-          <Link to="/Community">커뮤니티</Link>
-          <Link to="/Reservation">예약</Link>
-          <Link to="/MyPage">마이페이지</Link>
+          <NavLink
+            to="/Pest"
+            className={({ isActive }) => (isActive ? "active" : "")}
+          >
+            병해충 관리
+          </NavLink>
+          <NavLink
+            to="/Community"
+            className={({ isActive }) => (isActive ? "active" : "")}
+          >
+            커뮤니티
+          </NavLink>
+          <NavLink
+            to="/Reservation"
+            className={({ isActive }) => (isActive ? "active" : "")}
+          >
+            예약
+          </NavLink>
+          <NavLink
+            to="/MyPage"
+            className={({ isActive }) => (isActive ? "active" : "")}
+          >
+            마이페이지
+          </NavLink>
         </nav>
       </div>
 
@@ -36,7 +58,9 @@ const Header = () => {
           </button>
         ) : (
           <Link to="/Login" className="login-area">
-            <span role="img" aria-label="login">👤</span>
+            <span role="img" aria-label="login">
+              👤
+            </span>
             <span className="login-text">로그인</span>
           </Link>
         )}
