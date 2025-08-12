@@ -3,8 +3,6 @@ import React, { useMemo, useState } from "react";
 import Calendar from "react-calendar";
 import "react-calendar/dist/Calendar.css";
 import "./MainCalendar.css"
-// 분리했다면 아래를 켜주세요
-// import "../styles/MainCalendar.css";
 
 // 🧪 데모용 더미 데이터 (백엔드 붙기 전)
 const tasksByPlant = {
