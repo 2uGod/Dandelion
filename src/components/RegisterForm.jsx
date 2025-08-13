@@ -122,8 +122,8 @@ const RegisterForm = () => {
             <input
               type="radio"
               name="userType"
-              value="hobby"
-              checked={formData.userType === "hobby"}
+              value="HOBBY"
+              checked={formData.userType === "HOBBY"}
               onChange={handleChange}
             />
             취미반
@@ -132,8 +132,8 @@ const RegisterForm = () => {
             <input
               type="radio"
               name="userType"
-              value="expert"
-              checked={formData.userType === "expert"}
+              value="EXPERT"
+              checked={formData.userType === "EXPERT"}
               onChange={handleChange}
             />
             전문가
