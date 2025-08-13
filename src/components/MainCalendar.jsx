@@ -4,7 +4,7 @@ import Calendar from "react-calendar";
 import "react-calendar/dist/Calendar.css";
 import "./MainCalendar.css"
 
-// 🧪 데모용 더미 데이터 (백엔드 붙기 전)
+
 const tasksByPlant = {
   토마토: {
     "2025-08-09": ["물주기 500ml", "잎 끝 갈변 체크"],

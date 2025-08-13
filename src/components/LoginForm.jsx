@@ -21,19 +21,44 @@ const LoginForm = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await api.post('/users/login', {
+      // 로그인 요청
+      const res = await api.post('/auth/login', {
         email: form.email,
         password: form.password
       });
 
-      const { accessToken } = response.data;
-      login(accessToken);
+      // 응답 인터셉터 유무와 상관없이 data를 안전하게 추출
+      console.log('[LOGIN RES]', res);
+      const data = res?.data ?? res; // (응답 인터셉터가 있으면 res, 없으면 res.data)
+      console.log('[LOGIN DATA]', data);
+
+      // 가능한 모든 위치/키에서 토큰 추출
+      const token =
+        // 1) 순수 문자열 응답
+        (typeof data === 'string' ? data : null) ||
+        // 2) 평평한 키
+        data?.accessToken || data?.access_token || data?.token || data?.jwt ||
+        // 3) 한 단계 중첩
+        data?.data?.accessToken || data?.data?.access_token || data?.data?.token || data?.data?.jwt ||
+        // 4) 다른 컨벤션
+        data?.result?.accessToken || data?.result?.access_token;
+
+      if (!token || typeof token !== 'string') {
+        // 쿠키(HTTP-only) 기반일 수도 있으니 힌트 로그 남김
+        console.warn('No token in response body. If you use HTTP-only cookies, enable withCredentials and proper CORS.');
+        throw new Error('서버 응답에서 토큰을 찾을 수 없습니다.');
+      }
+
+      // accessToken 저장 및 디코드 처리(AuthContext.login 내부에서)
+      login(token);
 
       alert("로그인에 성공했습니다!");
-      navigate('/');  //홈으로 이동 슈웃
-
+      navigate('/');  // 홈으로 이동
     } catch (error) {
-      const errorMessage = error.response?.data?.message || "로그인 중 오류가 발생했습니다.";
+      const errorMessage =
+        error?.message ||
+        error?.response?.data?.message ||
+        "로그인 중 오류가 발생했습니다.";
       alert(`로그인 실패: ${errorMessage}`);
     }
   };
@@ -79,7 +104,7 @@ const LoginForm = () => {
           <p>계정이 없으신가요?</p>
           <button
             className="register-button"
-            onClick={() => navigate("/Register")}
+            onClick={() => navigate("/register")}
           >
             회원가입
           </button>

@@ -1,6 +1,6 @@
 // src/components/DiaryList.jsx
 import React, { useMemo, useState } from "react";
-import "./DiaryList.css"; // 썸네일용 스타일 포함했다면 유지
+import "./DiaryList.css"; 
 
 // 동일한 기본 이미지(렌더 안전용)
 const DEFAULT_IMAGE =
