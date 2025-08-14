@@ -1,65 +1,69 @@
-import React, { useState } from "react";
+// src/components/LoginForm.jsx
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-import api from '../api/axios';
-import { useAuth } from '../context/AuthContext';
+import api from "../api/axios";
+import { useAuth } from "../context/AuthContext";
 import "./LoginForm.css";
 
 const LoginForm = () => {
-  const navigate = useNavigate(); 
+  const navigate = useNavigate();
   const { login } = useAuth();
+
   const [form, setForm] = useState({ email: "", password: "", remember: false });
+  const [loading, setLoading] = useState(false);
+
+  // 저장된 이메일 복원
+  useEffect(() => {
+    const remembered = localStorage.getItem("remembered_email");
+    if (remembered) {
+      setForm((prev) => ({ ...prev, email: remembered, remember: true }));
+    }
+  }, []);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
     setForm((prev) => ({
       ...prev,
-      [name]: type === "checkbox" ? checked : value
+      [name]: type === "checkbox" ? checked : value,
     }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (loading) return;
+    setLoading(true);
+
     try {
-      // 로그인 요청
-      const res = await api.post('/auth/login', {
+      const res = await api.post("/auth/login", {
         email: form.email,
-        password: form.password
+        password: form.password,
       });
 
-      // 응답 인터셉터 유무와 상관없이 data를 안전하게 추출
-      console.log('[LOGIN RES]', res);
-      const data = res?.data ?? res; // (응답 인터셉터가 있으면 res, 없으면 res.data)
-      console.log('[LOGIN DATA]', data);
-
-      // 가능한 모든 위치/키에서 토큰 추출
-      const token =
-        // 1) 순수 문자열 응답
-        (typeof data === 'string' ? data : null) ||
-        // 2) 평평한 키
-        data?.accessToken || data?.access_token || data?.token || data?.jwt ||
-        // 3) 한 단계 중첩
-        data?.data?.accessToken || data?.data?.access_token || data?.data?.token || data?.data?.jwt ||
-        // 4) 다른 컨벤션
-        data?.result?.accessToken || data?.result?.access_token;
-
-      if (!token || typeof token !== 'string') {
-        // 쿠키(HTTP-only) 기반일 수도 있으니 힌트 로그 남김
-        console.warn('No token in response body. If you use HTTP-only cookies, enable withCredentials and proper CORS.');
-        throw new Error('서버 응답에서 토큰을 찾을 수 없습니다.');
+      const token = res?.data?.data?.accessToken;
+      if (typeof token !== "string" || !token) {
+        throw new Error("서버 응답에서 accessToken을 찾을 수 없습니다.");
       }
 
-      // accessToken 저장 및 디코드 처리(AuthContext.login 내부에서)
       login(token);
 
+      if (form.remember) {
+        localStorage.setItem("remembered_email", form.email);
+      } else {
+        localStorage.removeItem("remembered_email");
+      }
+
       alert("로그인에 성공했습니다!");
-      navigate('/');  // 홈으로 이동
+      navigate("/");
     } catch (error) {
-      const errorMessage =
-        error?.message ||
+      console.warn("[LOGIN ERROR]", error);
+      const msg =
         error?.response?.data?.message ||
+        error?.message ||
         "로그인 중 오류가 발생했습니다.";
-      alert(`로그인 실패: ${errorMessage}`);
+      alert(`로그인 실패: ${msg}`);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -69,14 +73,16 @@ const LoginForm = () => {
         <h2 className="login-title">함께 가꿔요, 농부들의 이야기밭!</h2>
         <p className="login-sub">Farmunity에 로그인하세요.</p>
 
-        <form onSubmit={handleSubmit} className="login-form">
+        <form onSubmit={handleSubmit} className="login-form" autoComplete="on">
           <input
             type="email"
             name="email"
             placeholder="이메일을 입력하세요"
             value={form.email}
             onChange={handleChange}
+            autoComplete="email"
             required
+            disabled={loading}
           />
           <input
             type="password"
@@ -84,7 +90,9 @@ const LoginForm = () => {
             placeholder="비밀번호를 입력하세요"
             value={form.password}
             onChange={handleChange}
+            autoComplete="current-password"
             required
+            disabled={loading}
           />
           <div className="checkbox-row">
             <label>
@@ -93,11 +101,14 @@ const LoginForm = () => {
                 name="remember"
                 checked={form.remember}
                 onChange={handleChange}
+                disabled={loading}
               />
               <span> ID 기억하기</span>
             </label>
           </div>
-          <button type="submit" className="login-button">로그인</button>
+          <button type="submit" className="login-button" disabled={loading}>
+            {loading ? "로그인 중..." : "로그인"}
+          </button>
         </form>
 
         <div className="register-link-wrapper">
@@ -105,6 +116,7 @@ const LoginForm = () => {
           <button
             className="register-button"
             onClick={() => navigate("/register")}
+            disabled={loading}
           >
             회원가입
           </button>
