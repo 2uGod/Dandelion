@@ -45,6 +45,23 @@
   outline-offset: 2px;
 }
 
+/* 좋아요 버튼 */
+.like-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #666;
+  font-size: 14px;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.like-btn:hover {
+  background: #f0f0f0;
+  color: #047857;
+}
+
 /* 카드 내부 요소 */
 .post-icon {
   width: 48px;
@@ -210,6 +227,53 @@
       transform: translateY(0);
     }
   }
+
+/* 페이지네이션 */
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  margin-top: 24px;
+  padding: 16px;
+}
+
+.pagination button {
+  padding: 8px 16px;
+  border: 1px solid #ddd;
+  background: #fff;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.pagination button:hover:not(:disabled) {
+  background: #047857;
+  color: white;
+  border-color: #047857;
+}
+
+.pagination button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.pagination span {
+  font-weight: 500;
+  color: #666;
+}
+
+/* 로딩 및 에러 스타일 */
+.loading, .error, .empty {
+  text-align: center;
+  padding: 40px 20px;
+  color: #666;
+  font-size: 16px;
+}
+
+.error {
+  color: #dc2626;
+}
   
 /* 반응형 */
 @media (max-width: 1024px){

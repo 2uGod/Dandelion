@@ -1,69 +1,14 @@
-import React, { useMemo, useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import Header from "../components/Header";
 import "../styles/Community.css";
 import { Link } from "react-router-dom";
+import { communityApi } from "../api/communityApi";
 
 const GREEN = "#047857";
 
-export const DUMMY_POSTS = [
-  {
-    id: 1,
-    type: "질문",
-    title: "토마토에는 어떤 비료가 어울리나요?",
-    content: "방울토마토 키우려는데 기비/추비 추천 부탁드려요!",
-    author: "이웃농부",
-    crop: "토마토",
-    createdAt: "2025-08-06T09:10:00Z",
-    likes: 12,
-    replies: 5,
-    icon: "🍅",
-    tags: ["비료", "초보", "토마토"],
-    images: []
-  },
-  {
-    id: 2,
-    type: "일지",
-    title: "고추 생육 점검 (7/25)",
-    content: "잎색 진해짐, 웃자람 방지 위해 전정 진행.",
-    author: "열정농부",
-    crop: "고추",
-    createdAt: "2025-07-25T12:00:00Z",
-    likes: 7,
-    replies: 2,
-    icon: "🌶️",
-    tags: ["생육일지", "전정", "고추"],
-    images: []
-  },
-  {
-    id: 3,
-    type: "노하우",
-    title: "딸기 러너 정리 팁",
-    content: "러너는 이 시기에 정리해야 뿌리 활착 좋아요.",
-    author: "베리굿",
-    crop: "딸기",
-    createdAt: "2025-08-08T03:40:00Z",
-    likes: 29,
-    replies: 9,
-    icon: "🍓",
-    tags: ["러너", "정식", "딸기"],
-    images: []
-  },
-  {
-    id: 4,
-    type: "질문",
-    title: "배추 모종에 작은 벌레… 방제 뭘로 갈까요?",
-    content: "잎에 구멍, 똥 흔적 보임. 약제 추천 좀…",
-    author: "새싹",
-    crop: "배추",
-    createdAt: "2025-08-09T22:10:00Z",
-    likes: 3,
-    replies: 4,
-    icon: "🥬",
-    tags: ["해충", "약제", "배추"],
-    images: []
-  },
-];
+// 더미 데이터 제거 - API를 사용하므로 불필요
 
+// 임시 하드코딩 - 추후 API로 교체 가능
 const HOT_KEYWORDS = [
   "기비/추비","관수 주기","러너","병해 사진판독","하우스 환기","탄저병","방제 캘린더",
   "배수","적심","유인"
@@ -77,42 +22,81 @@ function timeAgo(iso) {
   return `${Math.floor(diff/86400)}일 전`;
 }
 
-const PostCard = ({ p }) => (
-  <Link to={`/Community/${p.id}`} className="post-card post-link">
-    <div className="post-icon" aria-hidden>{p.icon}</div>
-    <div className="post-main">
-      <header className="post-head">
-        <span className="post-type">{p.type}</span>
-        <h3 className="post-title">{p.title}</h3>
-      </header>
+const PostCard = ({ p, onLike }) => {
+  const getCategoryDisplayName = (category) => {
+    const categoryMap = {
+      "question": "질문",
+      "diary": "일지", 
+      "knowhow": "노하우",
+      "general": "일반",
+      "reservation": "예약"
+    };
+    return categoryMap[category] || category;
+  };
+  
+  const getCategoryIcon = (category) => {
+    const iconMap = {
+      "question": "❓",
+      "diary": "📝",
+      "knowhow": "💡",
+      "general": "💬",
+      "reservation": "📅"
+    };
+    return iconMap[category] || "💬";
+  };
+  
+  const handleLike = async (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (onLike) {
+      await onLike(p.id);
+    }
+  };
+  
+  return (
+    <div className="post-card">
+      <Link to={`/Community/${p.id}`} className="post-link">
+        <div className="post-icon" aria-hidden>{getCategoryIcon(p.category)}</div>
+        <div className="post-main">
+          <header className="post-head">
+            <span className="post-type">{getCategoryDisplayName(p.category)}</span>
+            <h3 className="post-title">{p.title}</h3>
+          </header>
 
-      <p className="post-content">{p.content}</p>
+          <p className="post-content">{p.content}</p>
 
-      {!!(p.images && p.images.length) && (
-        <div className="thumb-grid">
-          {p.images.slice(0,4).map((src, i) => (
-            <img key={i} src={src} alt="" className="thumb" />
-          ))}
-          {p.images.length > 4 && (
-            <div className="thumb more">+{p.images.length - 4}</div>
+          {!!(p.images && p.images.length) && (
+            <div className="thumb-grid">
+              {p.images.slice(0,4).map((src, i) => (
+                <img key={i} src={src} alt="" className="thumb" />
+              ))}
+              {p.images.length > 4 && (
+                <div className="thumb more">+{p.images.length - 4}</div>
+              )}
+            </div>
           )}
-        </div>
-      )}
 
-      <footer className="post-foot">
-        {p.crop && <span className="meta">{p.crop}</span>}
-        <span className="meta">• {p.author}</span>
-        <span className="meta">• {timeAgo(p.createdAt)}</span>
-        <span className="spacer" />
-        <span className="meta">👍 {p.likes}</span>
-        <span className="meta">💬 {p.replies}</span>
-      </footer>
-      <div className="tag-wrap">
-        {p.tags.map(t => <span key={t} className="tag">#{t}</span>)}
-      </div>
+          <footer className="post-foot">
+            <span className="meta">• {p.author?.nickname || p.author?.name || '익명'}</span>
+            <span className="meta">• {timeAgo(p.createdAt)}</span>
+            <span className="spacer" />
+            <button 
+              className="like-btn"
+              onClick={handleLike}
+              type="button"
+            >
+              👍 {p.likesCount || 0}
+            </button>
+            <span className="meta">💬 {p.commentsCount || 0}</span>
+          </footer>
+          <div className="tag-wrap">
+            {(p.tags || []).map(t => <span key={t} className="tag">#{t}</span>)}
+          </div>
+        </div>
+      </Link>
     </div>
-  </Link>
-);
+  );
+};
 
 /** 질문/노하우 작성 폼 (모달 내부) */
 const ComposeForm = ({ onSubmit, onClose }) => {
@@ -263,39 +247,112 @@ const Community = () => {
   const [q, setQ]   = useState("");
   const [sort, setSort] = useState("최신순");
   const [composeOpen, setComposeOpen] = useState(false);
+  const [posts, setPosts] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
 
-  const filtered = useMemo(()=>{
-    let arr = DUMMY_POSTS.slice();
-    if (tab !== "전체") arr = arr.filter(p=>p.type === tab);
-    if (q.trim()) {
-      const key = q.trim().toLowerCase();
-      arr = arr.filter(p =>
-        p.title.toLowerCase().includes(key) ||
-        p.content.toLowerCase().includes(key) ||
-        p.tags.some(t=>t.toLowerCase().includes(key))
-      );
+  // API에서 게시글 목록 가져오기
+  const fetchPosts = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      const params = {
+        page: currentPage,
+        limit: 20
+      };
+      
+      // 카테고리 매핑
+      if (tab !== "전체") {
+        const categoryMap = {
+          "질문": "question",
+          "일지": "diary", 
+          "노하우": "knowhow"
+        };
+        params.category = categoryMap[tab];
+      }
+      
+      // 검색어
+      if (q.trim()) {
+        params.search = q.trim();
+      }
+      
+      // 정렬
+      const sortMap = {
+        "최신순": "latest",
+        "인기순": "popular",
+        "댓글많은순": "views"
+      };
+      params.sortBy = sortMap[sort];
+      
+      const response = await communityApi.getPosts(params);
+      if (response.success) {
+        setPosts(response.data.posts || response.data || []);
+        setTotalPages(response.data.totalPages || 1);
+      }
+    } catch (err) {
+      setError('게시글을 불러오는데 실패했습니다.');
+      console.error('게시글 목록 조회 오류:', err);
+    } finally {
+      setLoading(false);
     }
-    if (sort === "최신순") arr.sort((a,b)=> new Date(b.createdAt) - new Date(a.createdAt));
-    if (sort === "인기순") arr.sort((a,b)=> b.likes - a.likes);
-    if (sort === "댓글많은순") arr.sort((a,b)=> b.replies - a.replies);
-    return arr;
-  }, [tab,q,sort]);
+  };
+  
+  // 게시글 목록 새로고침
+  useEffect(() => {
+    fetchPosts();
+  }, [tab, q, sort, currentPage]);
+  
+  // 검색어 변경 시 페이지 리셋
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [q, tab, sort]);
 
-  const handleComposeSubmit = ({ type, title, content, images }) => {
-    DUMMY_POSTS.unshift({
-      id: Date.now(),
-      type,                         // 질문 | 노하우
-      title, content,
-      author: "나",
-      crop: "기타",
-      createdAt: new Date().toISOString(),
-      likes: 0,
-      replies: 0,
-      icon: type === "질문" ? "❓" : "💡",
-      tags: [type],
-      images: images || []
-    });
-    setTab(type); // 작성한 탭으로 이동
+  const handleComposeSubmit = async ({ type, title, content, images }) => {
+    try {
+      const categoryMap = {
+        "질문": "question",
+        "노하우": "knowhow"
+      };
+      
+      const postData = {
+        title,
+        content, 
+        category: categoryMap[type],
+        tags: [type],
+        images: images || []
+      };
+      
+      const response = await communityApi.createPost(postData);
+      if (response.success) {
+        setTab(type); // 작성한 탭으로 이동
+        setCurrentPage(1);
+        fetchPosts(); // 목록 새로고침
+      }
+    } catch (error) {
+      console.error('게시글 작성 실패:', error);
+      alert('게시글 작성에 실패했습니다.');
+    }
+  };
+
+  const handleLike = async (postId) => {
+    try {
+      const response = await communityApi.likePost(postId);
+      if (response.success) {
+        // 게시글 목록에서 해당 게시글의 좋아요 수 업데이트
+        setPosts(prevPosts => 
+          prevPosts.map(post => 
+            post.id === postId 
+              ? { ...post, likesCount: (post.likesCount || 0) + 1 }
+              : post
+          )
+        );
+      }
+    } catch (error) {
+      console.error('좋아요 실패:', error);
+    }
   };
 
   return (
@@ -341,11 +398,32 @@ const Community = () => {
 
           {/* 리스트 */}
           <div className="post-list">
-            {filtered.map(p=> <PostCard key={p.id} p={p} />)}
-            {!filtered.length && (
+            {loading && <div className="loading">로딩 중...</div>}
+            {error && <div className="error">{error}</div>}
+            {!loading && !error && posts.map(p=> <PostCard key={p.id} p={p} onLike={handleLike} />)}
+            {!loading && !error && !posts.length && (
               <div className="empty">조건에 맞는 글이 없어요.</div>
             )}
           </div>
+          
+          {/* 페이지네이션 */}
+          {totalPages > 1 && (
+            <div className="pagination">
+              <button 
+                disabled={currentPage === 1}
+                onClick={() => setCurrentPage(prev => prev - 1)}
+              >
+                이전
+              </button>
+              <span>{currentPage} / {totalPages}</span>
+              <button 
+                disabled={currentPage === totalPages}
+                onClick={() => setCurrentPage(prev => prev + 1)}
+              >
+                다음
+              </button>
+            </div>
+          )}
         </section>
 
         {/* 오른쪽 패널 */}
