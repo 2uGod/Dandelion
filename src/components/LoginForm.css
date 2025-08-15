@@ -1,4 +1,4 @@
-/* 🌿 로그인 전체 영역 */
+
 .login-wrapper {
     display: flex;
     justify-content: center;
@@ -8,7 +8,7 @@
     min-height: calc(100vh - 80px); /* 헤더 높이 고려 */
   }
   
-  /* 🌿 흰색 박스 */
+
   .login-box {
     background-color: #ffffff;
     padding: 40px;
@@ -20,7 +20,7 @@
     animation: fadeIn 0.4s ease-in-out;
   }
   
-  /* 🌿 타이틀 */
+
   .login-title {
     font-size: 20px;
     font-weight: bold;
@@ -28,14 +28,14 @@
     margin-bottom: 6px;
   }
   
-  /* 🌿 부제목 */
+
   .login-sub {
     font-size: 14px;
     color: #666;
     margin-bottom: 24px;
   }
   
-  /* 🌿 입력 폼 */
+
   .login-form {
     display: flex;
     flex-direction: column;
@@ -43,7 +43,7 @@
     text-align: left;
   }
   
-  /* 🌿 인풋 필드 */
+
   .login-form input[type="email"],
   .login-form input[type="password"] {
     padding: 12px 14px;
@@ -61,7 +61,7 @@
     box-shadow: 0 0 0 2px rgba(4, 120, 87, 0.1);
   }
   
-  /* 🌿 체크박스 */
+
   .checkbox-row {
     display: flex;
     align-items: center;
@@ -69,7 +69,7 @@
     color: #333;
   }
   
-  /* 🌿 로그인 버튼 */
+
   .login-button {
     background-color: #047857;
     color: white;
@@ -86,7 +86,7 @@
     background-color: #065f46;
   }
   
-  /* 🌿 회원가입 영역 */
+
   .register-link-wrapper {
     margin-top: 24px;
     text-align: center;
@@ -116,7 +116,7 @@
     color: white;
   }
   
-  /* ✨ 부드러운 진입 애니메이션 */
+
   @keyframes fadeIn {
     from {
       opacity: 0;
