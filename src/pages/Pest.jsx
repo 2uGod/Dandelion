@@ -1,175 +1,405 @@
-import React, { useCallback, useRef, useState } from "react";
+// src/pages/Pest.jsx
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import Header from "../components/Header";
 import "../styles/Pest.css";
-import { detectPest } from "../services/pestApi";
+import { getMyPlants } from "../services/plantApi";
+import { getPestsForSpecies, searchPests, getPestDetail } from "../services/pestApi";
+import { chatPlantAdvisor } from "../services/aiApi";
 
-const ACCEPT = "image/*";
+// 작은 UI 유틸
+const Tag = ({ children, tone = "neutral" }) => (
+  <span className={`tag tag-${tone}`}>{children}</span>
+);
+
+// 메시지 버블
+const ChatBubble = ({ role, content }) => {
+  const isUser = role === "user";
+  return (
+    <div className={`chat-row ${isUser ? "right" : "left"}`}>
+      <div className={`bubble ${isUser ? "user" : "assistant"}`}>{content}</div>
+    </div>
+  );
+};
+
+// 식물 리스트(좌측)
+const PlantList = ({ plants, selectedId, onSelect }) => {
+  if (!plants?.length) {
+    return (
+      <div className="empty-list">
+        등록된 식물이 없어요. <br /> 마이페이지에서 식물을 추가해 주세요.
+      </div>
+    );
+  }
+  return (
+    <ul className="plant-list" role="listbox" aria-label="내 작물 목록">
+      {plants.map((p) => (
+        <li
+          key={p.id}
+          className={`plant-item ${selectedId === p.id ? "active" : ""}`}
+          onClick={() => onSelect(p)}
+          role="option"
+          aria-selected={selectedId === p.id}
+        >
+          <img
+            src={p.thumbnailUrl || "/plant_fallback.png"}
+            alt={`${p.name} 썸네일`}
+            className="plant-thumb"
+          />
+          <div className="plant-meta">
+            <div className="plant-name">{p.name}</div>
+            <div className="plant-species">{p.species}</div>
+          </div>
+        </li>
+      ))}
+    </ul>
+  );
+};
+
+// 병해충 카드
+const PestCard = ({ pest, onOpen }) => {
+  return (
+    <article className="pest-card" onClick={() => onOpen(pest.slug)} role="button">
+      <div className="pest-card-top">
+        <h4 className="pest-name">{pest.koreanName || pest.name}</h4>
+        <Tag tone={pest.severity === "high" ? "danger" : pest.severity === "mid" ? "warn" : "neutral"}>
+          {pest.severity === "high" ? "주의(높음)" : pest.severity === "mid" ? "주의(중간)" : "일반"}
+        </Tag>
+      </div>
+      <p className="pest-desc">{pest.shortDescription}</p>
+      <div className="pest-card-bottom">
+        {pest.categories?.map((c) => (
+          <Tag key={c} tone="neutral">{c}</Tag>
+        ))}
+      </div>
+    </article>
+  );
+};
+
+// 백과사전 사이드패널
+const EncyclopediaPanel = ({ openSlug, onClose }) => {
+  const [loading, setLoading] = useState(false);
+  const [detail, setDetail] = useState(null);
+
+  useEffect(() => {
+    let ignore = false;
+    const load = async () => {
+      if (!openSlug) return;
+      setLoading(true);
+      try {
+        const data = await getPestDetail(openSlug);
+        if (!ignore) setDetail(data);
+      } catch (e) {
+        if (!ignore)
+          setDetail({
+            name: "정보를 불러오지 못했습니다.",
+            description: "잠시 후 다시 시도해 주세요.",
+          });
+      } finally {
+        if (!ignore) setLoading(false);
+      }
+    };
+    load();
+    return () => { ignore = true; };
+  }, [openSlug]);
+
+  return (
+    <aside className={`ency-panel ${openSlug ? "open" : ""}`}>
+      <div className="ency-header">
+        <h3>병해충 백과</h3>
+        <button className="icon-btn" onClick={onClose} aria-label="닫기">✖</button>
+      </div>
+      <div className="ency-body">
+        {loading && <div className="skeleton tall" />}
+        {!loading && detail && (
+          <>
+            <h4 className="ency-title">{detail.koreanName || detail.name}</h4>
+            {detail.images?.length ? (
+              <div className="ency-images">
+                {detail.images.map((src, i) => (
+                  <img key={i} src={src} alt={`${detail.name} 이미지 ${i + 1}`} />
+                ))}
+              </div>
+            ) : null}
+            <p className="ency-desc">{detail.description}</p>
+            {detail.symptoms?.length ? (
+              <>
+                <h5>주요 증상</h5>
+                <ul className="bullet">
+                  {detail.symptoms.map((s, i) => <li key={i}>{s}</li>)}
+                </ul>
+              </>
+            ) : null}
+            {detail.cause ? (
+              <>
+                <h5>원인</h5>
+                <p>{detail.cause}</p>
+              </>
+            ) : null}
+            {detail.treatments?.length ? (
+              <>
+                <h5>관리 방법</h5>
+                <ul className="bullet">
+                  {detail.treatments.map((t, i) => <li key={i}>{t}</li>)}
+                </ul>
+              </>
+            ) : null}
+            {detail.references?.length ? (
+              <>
+                <h5>참고</h5>
+                <ul className="refs">
+                  {detail.references.map((r, i) => (
+                    <li key={i}>
+                      {r.url ? (
+                        <a href={r.url} target="_blank" rel="noreferrer">{r.title || r.url}</a>
+                      ) : (
+                        r.title
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              </>
+            ) : null}
+          </>
+        )}
+      </div>
+    </aside>
+  );
+};
 
 export default function Pest() {
-  const [file, setFile] = useState(null);
-  const [previewUrl, setPreviewUrl] = useState("");
-  const [result, setResult] = useState(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-  const inputRef = useRef(null);
+  // 좌측: 내 식물
+  const [plants, setPlants] = useState([]);
+  const [selectedPlant, setSelectedPlant] = useState(null);
 
-  const onSelectFile = useCallback((f) => {
-    if (!f) return;
-    if (!f.type.startsWith("image/")) {
-      setError("이미지 파일만 업로드할 수 있어요.");
-      return;
-    }
-    setError("");
-    setResult(null);
-    setFile(f);
-    const url = URL.createObjectURL(f);
-    setPreviewUrl(url);
+  // 우측: 병해충 목록 / 검색
+  const [loadingPests, setLoadingPests] = useState(false);
+  const [pests, setPests] = useState([]);
+  const [query, setQuery] = useState("");
+
+  // 중앙: 상담(메인)
+  const [messages, setMessages] = useState([
+    {
+      role: "assistant",
+      content:
+        "안녕하세요! 상담 도우미입니다.\n식물/증상을 알려주시면 의심되는 병해충과 관리 방법을 알려드릴게요.\n예: “토마토 잎에 갈색 반점이 생기고 번져요.”",
+    },
+  ]);
+  const [chatInput, setChatInput] = useState("");
+  const [chatLoading, setChatLoading] = useState(false);
+
+  // 입력기(한글 IME) 조합 상태
+  const [isComposing, setIsComposing] = useState(false);
+
+  // 더블 전송 방지용
+  const lastSentAt = useRef(0);
+  const textareaRef = useRef(null);
+
+  // 백과사전 패널
+  const [openSlug, setOpenSlug] = useState("");
+
+  // --- 초기: 내 식물 불러오기
+  useEffect(() => {
+    (async () => {
+      try {
+        const data = await getMyPlants();
+        setPlants(data);
+        if (data.length) setSelectedPlant(data[0]);
+      } catch (e) {
+        // 실패해도 UI는 동작(목데이터 사용)
+      }
+    })();
   }, []);
 
-  const onDrop = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    const f = e.dataTransfer?.files?.[0];
-    onSelectFile(f);
-  };
+  // --- 식물 선택 시 해당 종의 주요 병해충 로딩
+  useEffect(() => {
+    const load = async () => {
+      if (!selectedPlant?.species) {
+        setPests([]);
+        return;
+      }
+      setLoadingPests(true);
+      try {
+        const data = await getPestsForSpecies(selectedPlant.species);
+        setPests(data);
+      } catch (e) {
+        setPests([]);
+      } finally {
+        setLoadingPests(false);
+      }
+    };
+    load();
+  }, [selectedPlant]);
 
-  const onChange = (e) => {
-    const f = e.target.files?.[0];
-    onSelectFile(f);
-  };
+  // --- 병해충 검색
+  useEffect(() => {
+    const id = setTimeout(async () => {
+      if (!query) return; // 선택 작물 기준 목록 유지
+      setLoadingPests(true);
+      try {
+        const data = await searchPests(query);
+        setPests(data);
+      } catch (e) {
+        // ignore
+      } finally {
+        setLoadingPests(false);
+      }
+    }, 350);
+    return () => clearTimeout(id);
+  }, [query]);
 
-  const onClickUpload = () => inputRef.current?.click();
+  // --- 전송 함수 (중복 방지 & 안전한 상태 업데이트)
+  const onSend = async () => {
+    const text = chatInput.trim();
+    if (!text) return;
+    if (chatLoading) return; // 전송 중이면 무시
 
-  const onReset = () => {
-    setFile(null);
-    setPreviewUrl("");
-    setResult(null);
-    setError("");
-    if (inputRef.current) inputRef.current.value = "";
-  };
+    const now = Date.now();
+    if (now - lastSentAt.current < 350) return; // 연타 방지(0.35s)
+    lastSentAt.current = now;
 
-  const onPredict = async () => {
-    if (!file) {
-      setError("먼저 이미지를 선택해 주세요.");
-      return;
-    }
+    setChatInput("");
+    setMessages((prev) => [...prev, { role: "user", content: text }]); // ✅ 이전 상태 기반
+    setChatLoading(true);
+
     try {
-      setLoading(true);
-      setError("");
-      const res = await detectPest(file);
-      setResult(res);
-    } catch (err) {
-      console.error(err);
-      setError("예측 요청 중 오류가 발생했어요. 잠시 후 다시 시도해 주세요.");
+      const ctx = {
+        plant: selectedPlant?.name,
+        species: selectedPlant?.species,
+        recentPests: pests.slice(0, 5).map((p) => p.name),
+      };
+      const answer = await chatPlantAdvisor(text, ctx);
+      setMessages((prev) => [...prev, { role: "assistant", content: answer }]);
+    } catch (e) {
+      setMessages((prev) => [
+        ...prev,
+        { role: "assistant", content: "답변 생성 중 오류가 발생했어요. 잠시 후 다시 시도해 주세요." },
+      ]);
     } finally {
-      setLoading(false);
+      setChatLoading(false);
+      // 전송 후 포커스 유지
+      textareaRef.current?.focus();
     }
   };
+
+  // --- Enter 핸들 (한글 조합/Shift+Enter 줄바꿈 처리)
+  const handleKeyDown = (e) => {
+    if (e.key === "Enter" && !e.shiftKey && !isComposing) {
+      e.preventDefault();
+      onSend();
+    }
+  };
+
+  // --- 필터링(검색어가 있을 때만 사용)
+  const filtered = useMemo(() => {
+    if (!query) return pests;
+    const q = query.toLowerCase();
+    return pests.filter(
+      (p) =>
+        p.name?.toLowerCase().includes(q) ||
+        p.koreanName?.toLowerCase().includes(q) ||
+        p.shortDescription?.toLowerCase().includes(q)
+    );
+  }, [pests, query]);
 
   return (
     <div className="pest-page">
       <Header />
 
-      <main className="pest-container" role="main">
-        <section className="pest-hero">
-          <h2 className="pest-title">병해충 이미지 진단 (베타)</h2>
-          <p className="pest-subtitle">잎 사진을 업로드하면 AI가 의심되는 병해충을 추정해요. (테스트용 UI)</p>
-        </section>
-
-        <section
-          className="upload-area"
-          onDragOver={(e) => { e.preventDefault(); e.dataTransfer.dropEffect = "copy"; }}
-          onDrop={onDrop}
-          aria-label="이미지 드래그 앤 드롭 영역"
-        >
-          {previewUrl ? (
-            <figure className="preview">
-              <img src={previewUrl} alt="업로드 미리보기" />
-              <figcaption className="preview-name" title={file?.name}>{file?.name}</figcaption>
-              <div className="preview-actions">
-                <button type="button" className="btn" onClick={onReset}>다시 선택</button>
-              </div>
-            </figure>
-          ) : (
-            <button type="button" className="upload-cta" onClick={onClickUpload}>
-              <span className="upload-icon" aria-hidden>⬆️</span>
-              <span>
-                이미지를 드래그하거나 <strong>클릭해 업로드</strong>
-              </span>
-              <span className="upload-hint">JPG, PNG 등 이미지 파일 지원</span>
-            </button>
-          )}
-          <input
-            ref={inputRef}
-            type="file"
-            accept={ACCEPT}
-            onChange={onChange}
-            aria-label="이미지 파일 선택"
-            hidden
+      {/* 상담 메인 레이아웃: 좌(내 식물) - 중(상담) - 우(병해충) */}
+      <main className="pest-layout chat-first">
+        {/* 좌측: 내 식물 */}
+        <aside className="pane left">
+          <div className="pane-header">
+            <h3>내 식물</h3>
+          </div>
+          <PlantList
+            plants={plants}
+            selectedId={selectedPlant?.id}
+            onSelect={setSelectedPlant}
           />
+        </aside>
+
+        {/* 중앙: AI 상담(메인) */}
+        <section className="pane center chat-pane" role="main">
+          <div className="hero">
+            <h2 className="title">AI 병해충 상담</h2>
+            <p className="subtitle">
+              선택한 작물/증상을 알려주시면 진단 방향과 관리 팁을 제안해 드려요.
+            </p>
+          </div>
+
+          <div className="chat-box" role="log" aria-live="polite">
+            {messages.map((m, i) => (
+              <ChatBubble key={i} role={m.role} content={m.content} />
+            ))}
+            {chatLoading && <div className="typing">AI가 답변을 작성 중…</div>}
+          </div>
+
+          <div className="chat-input">
+            <textarea
+              ref={textareaRef}
+              rows={3}
+              placeholder={
+                selectedPlant
+                  ? `예) ${selectedPlant.name} 잎이 누렇게 변하고 갈라져요.`
+                  : "예) 잎이 누렇게 변하고 갈라져요."
+              }
+              value={chatInput}
+              onChange={(e) => setChatInput(e.target.value)}
+              onKeyDown={handleKeyDown}
+              onCompositionStart={() => setIsComposing(true)}
+              onCompositionEnd={() => setIsComposing(false)}
+            />
+            <button
+              className="btn primary"
+              onClick={onSend}
+              disabled={chatLoading || isComposing || chatInput.trim() === ""}
+              title={isComposing ? "한글 조합이 끝난 뒤 전송할 수 있어요" : undefined}
+            >
+              전송
+            </button>
+          </div>
         </section>
 
-        <section className="actions">
-          <button type="button" className="btn primary" onClick={onPredict} disabled={loading}>
-            {loading ? "예측 중…" : "예측하기"}
-          </button>
-          {file && !loading && (
-            <button type="button" className="btn ghost" onClick={onReset}>초기화</button>
-          )}
-        </section>
+        {/* 우측: 병해충 목록 */}
+        <aside className="pane right">
+          <div className="pane-header">
+            <h3>{selectedPlant?.species || "작물"} 주요 병해충</h3>
+          </div>
 
-        {error && (
-          <div role="alert" className="alert error">{error}</div>
-        )}
+          <div className="list-header">
+            <input
+              className="search"
+              placeholder={`'${
+                selectedPlant?.species || "작물"
+              }' 관련 병해충 검색…`}
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              aria-label="병해충 검색"
+            />
+          </div>
 
-        {loading && (
-          <section className="result loading" aria-busy>
-            <div className="skeleton title" />
-            <div className="skeleton line" />
-            <div className="skeleton line" />
-          </section>
-        )}
-
-        {result && !loading && (
-          <section className="result" aria-live="polite">
-            <h3 className="result-title">예측 결과</h3>
-            <div className="result-grid">
-              <div className="card">
-                <h4>가장 유력</h4>
-                <p className="pred-main">{result.label}
-                  {typeof result.confidence === "number" && (
-                    <span className="confidence">{`  •  ${(result.confidence*100).toFixed(1)}%`}</span>
-                  )}
-                </p>
-              </div>
-
-              {result.topK?.length > 0 && (
-                <div className="card">
-                  <h4>다른 후보</h4>
-                  <ul className="topk">
-                    {result.topK.map((it, idx) => (
-                      <li key={idx}>
-                        <span className="label">{it.label}</span>
-                        {typeof it.score === "number" && (
-                          <span className="score">{(it.score*100).toFixed(1)}%</span>
-                        )}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-
-              {result.tips?.length > 0 && (
-                <div className="card">
-                  <h4>관리 팁</h4>
-                  <ul className="tips">
-                    {result.tips.map((t, i) => <li key={i}>{t}</li>)}
-                  </ul>
-                </div>
-              )}
+          {loadingPests ? (
+            <div className="grid loading">
+              <div className="skeleton card" />
+              <div className="skeleton card" />
+              <div className="skeleton card" />
             </div>
-          </section>
-        )}
+          ) : filtered?.length ? (
+            <div className="grid">
+              {filtered.map((p) => (
+                <PestCard key={p.slug || p.name} pest={p} onOpen={setOpenSlug} />
+              ))}
+            </div>
+          ) : (
+            <div className="empty">
+              병해충 결과가 없어요. 검색어를 바꾸거나 다른 식물을 선택해 보세요.
+            </div>
+          )}
+        </aside>
+
+        {/* 우측 플로팅: 백과사전 상세 */}
+        <EncyclopediaPanel openSlug={openSlug} onClose={() => setOpenSlug("")} />
       </main>
     </div>
   );

@@ -2,12 +2,18 @@ import React from "react";
 import Header from "../components/Header";
 import "../styles/Home.css";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext"; // ✅ 로그인 상태 확인용
 
 const Home = () => {
   const navigate = useNavigate();
+  const { isLoggedIn } = useAuth(); // ✅ 로그인 여부 가져오기
 
   const handleStart = () => {
-    navigate("/Register");
+    if (isLoggedIn) {
+      navigate("/MyPage"); // 로그인 상태면 마이페이지로
+    } else {
+      navigate("/Register"); // 비로그인 상태면 회원가입 페이지로
+    }
   };
 
   return (
