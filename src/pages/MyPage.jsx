@@ -59,7 +59,6 @@ const MyPage = () => {
 
           {activeTab === "journal" && (
             <>
-              {/* 목록 + 검색/월이동은 DiaryList가 담당 */}
               <DiaryList
                 entries={entries}
                 setEntries={setEntries}
@@ -67,21 +66,12 @@ const MyPage = () => {
                   setEditingEntry(entry);
                   setIsModalOpen(true);
                 }}
-              />
-
-              {/* + 버튼 (FAB) */}
-              <button
-                className="fab-add"
-                aria-label="일지 추가"
-                onClick={() => {
+                onAdd={() => {
                   setEditingEntry(null);
                   setIsModalOpen(true);
                 }}
-              >
-                +
-              </button>
+              />
 
-              {/* 작성/수정 모달 */}
               <DiaryModal
                 open={isModalOpen}
                 onClose={() => {

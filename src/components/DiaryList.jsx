@@ -6,7 +6,7 @@ import "./DiaryList.css";
 const DEFAULT_IMAGE =
   "data:image/svg+xml;utf8,%3Csvg xmlns%3D%22http%3A//www.w3.org/2000/svg%22 width%3D%22200%22 height%3D%22200%22 viewBox%3D%220 0 200 200%22%3E%3Crect width%3D%22200%22 height%3D%22200%22 rx%3D%2224%22 fill%3D%22%23e5f7ef%22/%3E%3Ctext x%3D%2250%25%22 y%3D%2255%25%22 dominant-baseline%3D%22middle%22 text-anchor%3D%22middle%22 font-size%3D%2272%22%3E%F0%9F%8C%B1%3C/text%3E%3C/svg%3E";
 
-const DiaryList = ({ entries, setEntries, onEdit }) => {
+const DiaryList = ({ entries, setEntries, onEdit, onAdd }) => {
   const now = new Date();
   const [year, setYear] = useState(now.getFullYear());
   const [month, setMonth] = useState(now.getMonth() + 1);
@@ -69,6 +69,7 @@ const DiaryList = ({ entries, setEntries, onEdit }) => {
           </div>
         </div>
 
+        {/* 오른쪽: 검색 + 바로 아래 일지 작성 버튼 */}
         <div className="toolbar-right">
           <input
             className="search-input"
@@ -76,6 +77,13 @@ const DiaryList = ({ entries, setEntries, onEdit }) => {
             value={q}
             onChange={(e) => setQ(e.target.value)}
           />
+          <button
+            type="button"
+            className="btn-primary toolbar-add-btn"
+            onClick={onAdd}
+          >
+            일지 작성
+          </button>
         </div>
       </div>
 
