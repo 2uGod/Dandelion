@@ -1,0 +1,98 @@
+/* ✅ 페이지 전체 */
+.register-page {
+  background-color: #f4f4f4;
+  min-height: 100vh;
+}
+
+/* ✅ 폼을 감싸는 컨테이너 (Header 아래 정렬) */
+.register-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 60px 20px;  /* 여백 넉넉히 */
+}
+
+/* ✅ 폼 박스 */
+.register-form-wrapper {
+  width: 100%;
+  max-width: 420px;
+  background-color: #ffffff;
+  padding: 40px;
+  border-radius: 16px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+  animation: fadeIn 0.4s ease-in-out;
+}
+
+/* ✅ 폼 내부 정렬 */
+.register-form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+/* ✅ 인풋 필드 */
+.register-form input {
+  padding: 12px 14px;
+  font-size: 14px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  background-color: #fafafa;
+  transition: 0.2s;
+}
+
+.register-form input:focus {
+  background-color: #fff;
+  border-color: #047857;
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(4, 120, 87, 0.1);
+}
+
+/* ✅ 에러 메시지 */
+.error-text {
+  color: #e11d48;
+  font-size: 13px;
+  margin: -8px 0 10px;
+}
+
+/* ✅ 제출 버튼 */
+button.submit-button {
+  background-color: #047857;
+  color: white;
+  border: none;
+  padding: 14px;
+  font-size: 15px;
+  font-weight: 500;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+button.submit-button:hover {
+  background-color: #065f46;
+}
+
+.radio-row {
+  display: flex;
+  justify-content: center;
+  gap: 24px;
+  margin: 10px 0 20px;
+  font-size: 14px;
+  color: #333;
+}
+
+.radio-row input[type="radio"] {
+  margin-right: 6px;
+}
+
+
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

@@ -1,0 +1,3 @@
+.diary-form{display:flex;flex-direction:column;gap:8px;margin-bottom:20px;}
+.diary-form input,.diary-form textarea{padding:8px;font-size:14px;border:1px solid #e5e7eb;background:#fff;border-radius:8px;}
+.diary-form button{padding:8px;background-color:#047857;color:#fff;border:none;cursor:pointer;border-radius:8px;}

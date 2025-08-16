@@ -1,0 +1,145 @@
+.main-header {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px;
+  background-color: #ffffff;
+  border-bottom: 1px solid #ddd;
+}
+.logo {
+  font-size: 24px;
+  color: #047857;
+  margin-right: 40px;
+}
+
+.nav-links {
+  display: flex;
+  gap: 30px;
+}
+
+.nav-links a {
+  text-decoration: none;
+  color: #333;
+  font-size: 17px;
+  font-weight: 500;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 40px;
+  padding-left: 40px;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+}
+
+.login-text {
+  color: black;
+}
+
+.login-area {
+  text-decoration: none;
+  color: inherit;
+}
+
+.nav-links a {
+  position: relative;
+  text-decoration: none;
+  color: #333;
+  font-size: 17px;
+  font-weight: 500;
+  transition: color 0.18s ease;
+}
+
+/* 밑줄 요소 */
+.nav-links a::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -4px;
+  height: 3px;
+  background: #047857;
+  transform: scaleX(0);
+  transform-origin: center;
+  transition: transform 0.2s ease;
+}
+
+.nav-links a:hover,
+.nav-links a:focus-visible {
+  color: #047857;
+}
+.nav-links a:hover::after,
+.nav-links a:focus-visible::after {
+  transform: scaleX(1);
+}
+
+.nav-links a.active,
+.nav-links a[aria-current="page"] {
+  color: #047857;
+}
+.nav-links a.active::after,
+.nav-links a[aria-current="page"]::after {
+  transform: scaleX(1);
+}
+
+.logout-btn {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 8px 14px;
+  border-radius: 9999px; /* 알약 모양 */
+  border: 1px solid rgba(4, 120, 87, 0.45); /* #047857 */
+  background: linear-gradient(180deg, #ffffff, #f7faf9);
+  color: #065f46;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1;
+
+  box-shadow: 0 1px 0 rgba(4, 120, 87, 0.08), 0 1px 2px rgba(0, 0, 0, 0.05),
+    inset 0 -2px 0 rgba(4, 120, 87, 0.08);
+
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease,
+    box-shadow 0.2s ease, transform 0.05s ease;
+}
+
+.logout-btn:hover {
+  background: #047857;
+  color: #fff;
+  border-color: #047857;
+  box-shadow: 0 6px 16px rgba(4, 120, 87, 0.25),
+    inset 0 1px 0 rgba(255, 255, 255, 0.25);
+}
+
+/* active: 살짝 눌림 */
+.logout-btn:active {
+  transform: translateY(1px);
+  box-shadow: 0 2px 8px rgba(4, 120, 87, 0.18),
+    inset 0 2px 0 rgba(0, 0, 0, 0.08);
+}
+
+/* 접근성: 포커스 링 */
+.logout-btn:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(4, 120, 87, 0.18), 0 0 0 6px rgba(4, 120, 87, 0.28);
+}
+
+/* 헤더 우측과 간격 */
+.header-right .logout-btn {
+  margin-left: 12px;
+}
+
+/* 비활성화 상태 */
+.logout-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

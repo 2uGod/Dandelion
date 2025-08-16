@@ -1,0 +1,96 @@
+.rs-wrap { background:#fff; min-height:100vh; }
+.rs-container { max-width: 1100px; margin: 0 auto; padding: 20px; }
+
+.rs-toolbar{
+  display:flex; gap:12px; align-items:center; border-bottom:1px solid #eee;
+  padding-bottom:12px; margin-bottom:16px; flex-wrap:wrap;
+}
+.rs-role-toggle{ display:flex; gap:8px; }
+.rs-role{
+  border:1px solid #e5e7eb; background:#fff; border-radius:999px;
+  padding:6px 12px; cursor:pointer;
+}
+.rs-role.active{ border-color:#047857; color:#047857; background:#e7f5ef; font-weight:700; }
+
+.rs-search{ position:relative; margin-left:auto; }
+.rs-search input{
+  height:36px; padding:0 34px 0 10px; border:1px solid #ddd; border-radius:8px; width:260px;
+}
+.rs-search-ico{ position:absolute; right:10px; top:7px; opacity:.6; }
+
+.rs-hint{ color:#555; margin:8px 0 14px; }
+
+.rs-grid{ display:grid; grid-template-columns: 1fr; gap:12px; }
+@media(min-width: 720px){ .rs-grid{ grid-template-columns: 1fr 1fr; } }
+
+.rs-card{
+  display:grid; grid-template-columns:60px 1fr auto; gap:12px;
+  border:1px solid #e5e7eb; border-radius:12px; padding:12px; background:#fff;
+}
+.rs-card-cover{
+  width:60px; height:60px; display:grid; place-items:center; font-size:28px; background:#f3f4f6; border-radius:10px;
+}
+.rs-card-title{ margin:0 0 6px; font-size:17px; }
+.rs-card-meta{ color:#666; font-size:13px; }
+.rs-card-desc{ color:#333; font-size:14px; margin:6px 0; }
+.rs-tagwrap{ display:flex; gap:6px; flex-wrap:wrap; }
+.rs-tag{ font-size:12px; padding:2px 8px; border-radius:999px; background:#e7f5ef; color:#047857; }
+.rs-card-actions{ display:flex; align-items:center; }
+
+.rs-box{ border:1px solid #e5e7eb; border-radius:12px; padding:12px; margin-top:16px; }
+.rs-book-list{ list-style:none; padding:0; margin:0; display:grid; gap:8px; }
+.rs-book-row{
+  display:grid; grid-template-columns: 1fr 120px 80px auto; align-items:center;
+  border:1px solid #f0f0f0; border-radius:10px; padding:10px;
+}
+.rs-book-title{ font-weight:600; }
+.rs-book-date{ color:#333; }
+.rs-book-meta{ color:#666; font-size:13px; }
+.rs-row-actions{ display:flex; gap:6px; justify-self:end; }
+
+.rs-badge{
+  justify-self:start; font-size:12px; padding:2px 8px; border-radius:999px;
+  background:#f3f4f6; color:#374151;
+}
+.rs-badge.ok{ background:#e7f5ef; color:#047857; }
+.rs-badge.pending{ background:#fff7ed; color:#9a3412; }
+
+.rs-empty{ text-align:center; color:#777; padding:14px 0; }
+
+/* 버튼 공통 */
+.btn-outline{
+  background:#fff; border:1px solid #ddd; border-radius:8px; padding:8px 12px; cursor:pointer;
+}
+.btn-solid{
+  background:#047857; color:#fff; border:none; border-radius:8px; padding:8px 12px; cursor:pointer;
+}
+.btn-solid:disabled{ opacity:.5; cursor:not-allowed; }
+
+/* -------- 모달 -------- */
+.rs-modal-backdrop{
+  position: fixed; inset: 0; background: rgba(17,24,39,.45);
+  display:flex; align-items:center; justify-content:center; z-index:1000;
+}
+.rs-modal-panel{
+  width:min(720px, 92vw); background:#fff; border-radius:14px; border:1px solid #e5e7eb;
+  box-shadow: 0 20px 50px rgba(0,0,0,.18); padding:18px; position:relative;
+}
+.rs-modal-close{
+  position:absolute; top:10px; right:10px; border:none; background:#111827; color:#fff;
+  width:28px; height:28px; border-radius:999px; cursor:pointer; line-height:28px; font-size:14px; opacity:.9;
+}
+
+/* 폼 */
+.rs-form{ display:flex; flex-direction:column; gap:10px; }
+.rs-modal-title{ margin:0 0 6px; }
+.rs-label{ display:flex; flex-direction:column; gap:6px; font-size:14px; }
+.rs-label input, .rs-label textarea{
+  border:1px solid #ddd; border-radius:8px; padding:10px; width:100%;
+}
+.rs-grid2{ display:grid; grid-template-columns: 1fr 1fr; gap:8px; }
+.rs-form-actions{ display:flex; gap:8px; justify-content:flex-end; margin-top:6px; }
+
+@media(max-width:560px){
+  .rs-book-row{ grid-template-columns: 1fr 92px 64px auto; }
+  .rs-grid2{ grid-template-columns: 1fr; }
+}
