@@ -8,7 +8,7 @@ import NavTabs from "../components/NavTabs";
 import MainCalendar from "../components/MainCalendar";
 import DiaryList from "../components/DiaryList";
 import DiaryModal from "../components/DiaryModal"; // ⬅️ 새 모달
-import ProfileSettings from "../components/ProfileSettings"
+import ProfileSettings from "../components/ProfileSettings";
 
 const STORAGE_KEY = "farmunity_diary_entries";
 
@@ -41,6 +41,28 @@ const MyPage = () => {
     setEditingEntry(null);
   };
 
+  // ✅ 삭제 핸들러 (이게 없어서 삭제가 동작하지 않았습니다)
+  const handleDelete = (entry) => {
+    const id = entry?.id ?? entry?._id;
+    if (!id) {
+      alert("삭제할 항목의 ID를 찾지 못했습니다.");
+      return;
+    }
+    if (!window.confirm("이 일지를 삭제하시겠습니까?")) return;
+
+    // 로컬 저장소 기준 삭제
+    setEntries((prev) => prev.filter((e) => (e.id ?? e._id) !== id));
+
+    // 🔻 서버 연동을 쓰신다면, 아래 주석을 해제하고 API 호출로 바꿔주세요.
+    // import { deleteDiary } from "../api/cropDiaryAPI";
+    // deleteDiary(id)
+    //   .then(() => setEntries((prev) => prev.filter((e) => (e.id ?? e._id) !== id)))
+    //   .catch((err) => {
+    //     console.error(err);
+    //     alert("서버 삭제 중 오류가 발생했습니다.");
+    //   });
+  };
+
   return (
     <div className="mypage-wrapper">
       <Header />
@@ -70,6 +92,8 @@ const MyPage = () => {
                   setEditingEntry(null);
                   setIsModalOpen(true);
                 }}
+                // ✅ 빠졌던 부분 추가
+                onDelete={handleDelete}
               />
 
               <DiaryModal
@@ -85,7 +109,7 @@ const MyPage = () => {
             </>
           )}
 
-          {activeTab === "settings" && <ProfileSettings/>}
+          {activeTab === "settings" && <ProfileSettings />}
         </main>
       </div>
     </div>
