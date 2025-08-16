@@ -7,33 +7,40 @@ import WeatherBar from "../components/WeatherBar";
 import NavTabs from "../components/NavTabs";
 import MainCalendar from "../components/MainCalendar";
 import DiaryList from "../components/DiaryList";
-import DiaryModal from "../components/DiaryModal"; // ⬅️ 새 모달
+import DiaryModal from "../components/DiaryModal";
 import ProfileSettings from "../components/ProfileSettings";
+import PlanAdd from "../components/PlanAdd";
 
 const STORAGE_KEY = "farmunity_diary_entries";
+const TASKS_KEY = "farmunity_tasks";
 
 const MyPage = () => {
-  const [selectedPlant, setSelectedPlant] = useState(null);
+  const [selectedPlant, setSelectedPlant] = useState("공통");
   const [activeTab, setActiveTab] = useState("calendar");
+
   const [entries, setEntries] = useState([]);
-
-  // 모달 상태
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingEntry, setEditingEntry] = useState(null); // 수정 대상
+  const [editingEntry, setEditingEntry] = useState(null);
 
-  // 최초 로드
+  const [tasks, setTasks] = useState([]);
+  const [planDate, setPlanDate] = useState("");
+
   useEffect(() => {
-    const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
-    setEntries(saved);
+    const savedEntries = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+    setEntries(savedEntries);
+    const savedTasks = JSON.parse(localStorage.getItem(TASKS_KEY) || "[]");
+    setTasks(Array.isArray(savedTasks) ? savedTasks : []);
   }, []);
 
-  // 저장 동기화
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(entries));
   }, [entries]);
 
-  // 모달 저장 핸들러 (신규/수정 공용)
-  const handleSave = (entry, isEdit) => {
+  useEffect(() => {
+    localStorage.setItem(TASKS_KEY, JSON.stringify(tasks));
+  }, [tasks]);
+
+  const handleSaveDiary = (entry, isEdit) => {
     setEntries((prev) =>
       isEdit ? prev.map((e) => (e.id === entry.id ? entry : e)) : [entry, ...prev]
     );
@@ -41,26 +48,21 @@ const MyPage = () => {
     setEditingEntry(null);
   };
 
-  // ✅ 삭제 핸들러 (이게 없어서 삭제가 동작하지 않았습니다)
-  const handleDelete = (entry) => {
+  const handleDeleteDiary = (entry) => {
     const id = entry?.id ?? entry?._id;
-    if (!id) {
-      alert("삭제할 항목의 ID를 찾지 못했습니다.");
-      return;
-    }
+    if (!id) return;
     if (!window.confirm("이 일지를 삭제하시겠습니까?")) return;
-
-    // 로컬 저장소 기준 삭제
     setEntries((prev) => prev.filter((e) => (e.id ?? e._id) !== id));
+  };
 
-    // 🔻 서버 연동을 쓰신다면, 아래 주석을 해제하고 API 호출로 바꿔주세요.
-    // import { deleteDiary } from "../api/cropDiaryAPI";
-    // deleteDiary(id)
-    //   .then(() => setEntries((prev) => prev.filter((e) => (e.id ?? e._id) !== id)))
-    //   .catch((err) => {
-    //     console.error(err);
-    //     alert("서버 삭제 중 오류가 발생했습니다.");
-    //   });
+  const goPlanTabWithDate = (dateStr) => {
+    setPlanDate(dateStr || "");
+    setActiveTab("plan");
+  };
+
+  const handleAddTask = (newTask) => {
+    setTasks((prev) => [{ ...newTask, id: Date.now() }, ...prev]);
+    setActiveTab("calendar");
   };
 
   return (
@@ -77,7 +79,13 @@ const MyPage = () => {
         <main className="mypage-main">
           <NavTabs activeTab={activeTab} setActiveTab={setActiveTab} />
 
-          {activeTab === "calendar" && <MainCalendar plant={selectedPlant} />}
+          {activeTab === "calendar" && (
+            <MainCalendar
+              plant={selectedPlant}       
+              tasks={tasks}
+              onGoPlan={goPlanTabWithDate}
+            />
+          )}
 
           {activeTab === "journal" && (
             <>
@@ -92,8 +100,7 @@ const MyPage = () => {
                   setEditingEntry(null);
                   setIsModalOpen(true);
                 }}
-                // ✅ 빠졌던 부분 추가
-                onDelete={handleDelete}
+                onDelete={handleDeleteDiary}
               />
 
               <DiaryModal
@@ -104,9 +111,17 @@ const MyPage = () => {
                 }}
                 initial={editingEntry}
                 selectedPlant={selectedPlant}
-                onSave={handleSave}
+                onSave={handleSaveDiary}
               />
             </>
+          )}
+
+          {activeTab === "plan" && (
+            <PlanAdd
+              selectedPlant={selectedPlant}
+              initialDate={planDate}
+              onAddTask={handleAddTask}
+            />
           )}
 
           {activeTab === "settings" && <ProfileSettings />}
