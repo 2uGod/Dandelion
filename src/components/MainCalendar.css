@@ -15,14 +15,12 @@
 .schedule-empty{background:#fff;border:1px dashed #d1d5db;border-radius:12px;padding:16px;text-align:center;color:#6b7280;}
 .schedule-empty .hint{margin-top:6px;font-size:12px;color:#9ca3af;}
 
-/* 선택 날짜 리스트(작물 뷰) */
 .schedule-list{list-style:none;margin:0;padding:0;background:#fff;border-radius:12px;border:1px solid #e5e7eb;overflow:hidden;}
 .schedule-item{display:flex;gap:8px;align-items:center;padding:12px 14px;border-bottom:1px solid #f3f4f6;font-size:14px;color:#111827;}
 .schedule-item:last-child{border-bottom:none;}
 .schedule-item .dot{width:8px;height:8px;border-radius:999px;background:#047857;display:inline-block;}
 .schedule-actions{margin-top:12px;display:flex;gap:8px;justify-content:flex-end;}
 
-/* ✅ 타일 하단 도트 + 초과 배지(+N) */
 .cal-dots-wrap{
   display:flex;
   gap:4px;
@@ -46,7 +44,6 @@
   transform:translateY(-1px);
 }
 
-/* ✅ 공통(월간) 뷰 스타일 */
 .month-groups{display:flex;flex-direction:column;gap:14px;}
 .month-group{background:#fff;border:1px solid #e5e7eb;border-radius:12px;overflow:hidden;}
 .group-date{
