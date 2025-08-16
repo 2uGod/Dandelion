@@ -1,118 +1,154 @@
 .diary-list {
-  margin-top: 12px;
-}
-
-.diary-toolbar {
   display: flex;
-  justify-content: space-between;
-  align-items: flex-start; 
-  gap: 12px;
-  margin: 16px 0 8px;
-  flex-wrap: wrap;
-}
-
-.toolbar-left {
-  display: flex;
-  align-items: center;
+  flex-direction: column;
   gap: 16px;
 }
 
-.nav-group {
+/* 상단 툴바 */
+.list-toolbar {
+  display: flex;
+  justify-content: flex-end; /* 오른쪽 정렬 유지 */
+  align-items: center;
+}
+
+/* 버튼이 검색 입력칸의 왼쪽에 오도록 수평 배치 */
+.toolbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px; /* 버튼과 입력칸 간격 */
+}
+
+.write-button {
   display: inline-flex;
+  align-items: center;
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: 1px solid #10b981;
+  background: #10b981;
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.05s ease, box-shadow 0.2s ease, background 0.2s ease;
+}
+.write-button:hover {
+  background: #0ea371;
+}
+.write-button:active {
+  transform: translateY(1px);
+}
+
+.search-input {
+  width: 280px;
+  padding: 10px 12px;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  background: #fff;
+  outline: none;
+}
+.search-input:focus {
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15);
+  border-color: #10b981;
+}
+
+/* 목록 카드 */
+.cards {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 14px;
+}
+
+.card {
+  display: grid;
+  grid-template-columns: 110px 1fr;
+  gap: 12px;
+  background: #fff;
+  border: 1px solid #f0f2f4;
+  border-radius: 14px;
+  padding: 12px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.04) inset;
+}
+
+.thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 10px;
+  background: #f3f4f6;
+}
+
+.meta .title-row {
+  display: flex;
+  justify-content: space-between;
   align-items: center;
   gap: 8px;
 }
 
-.nav-btn {
-  border: 1px solid #e5e7eb;
-  background: #fff;
+.title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+  color: #111827;
+}
+
+.card-actions {
+  display: inline-flex;
+  gap: 6px;
+}
+
+.card-btn {
   padding: 6px 10px;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  background: #f9fafb;
   cursor: pointer;
-  border-radius: 6px;
+  font-size: 12px;
 }
-.nav-btn:hover { background: #f9fafb; }
-.nav-btn:focus-visible { outline: 2px solid #047857; outline-offset: 2px; }
+.card-btn:hover {
+  background: #eef2f7;
+}
+.card-btn.danger {
+  border-color: #fca5a5;
+  background: #fee2e2;
+}
 
-.nav-label {
-  min-width: 68px;
+.date {
+  margin: 4px 0 6px;
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.content {
+  margin: 0;
+  font-size: 14px;
+  color: #374151;
+}
+
+/* 빈 상태 */
+.empty {
+  padding: 32px 16px;
   text-align: center;
-  font-weight: 600;
+  color: #6b7280;
+  border: 1px dashed #e5e7eb;
+  border-radius: 12px;
+  background: #fafafa;
 }
 
-.toolbar-right {
-  display: flex;
-  flex-direction: column;     
-  align-items: flex-end;      
-  gap: 8px;                   
-}
-
-.search-input {
-  min-width: 220px;
-  padding: 8px 10px;
-  border: 1px solid #e5e7eb;
-  background: #fff;
+.write-button {
+  background: #047857;
+  color: #fff;
+  border: none;
+  padding: 8px 12px;      
   border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
 }
-.search-input:focus { outline: 2px solid #047857; outline-offset: 1px; }
-
-
-.filter-summary { margin: 4px 0 12px; color:#4b5563; font-size: 14px; }
-
-.diary-item {
-  border: 1px solid #e5e7eb;
-  border-radius: 10px;
-  padding: 12px;
-  margin-bottom: 10px;
-  background: #fff;
-}
-
-.diary-item-header {
-  display:flex;
-  justify-content: space-between;
-  gap:12px;
-  align-items: baseline;
-}
-
-.diary-title { margin:0; font-size:16px; font-weight: 700; }
-.diary-meta { color:#6b7280; font-size:12px; display:flex; align-items:center; gap:6px; }
-.dot { opacity:.6; }
-
-.diary-content { white-space:pre-wrap; margin:8px 0 12px; color:#1f2937; }
-
-.diary-actions { display:flex; gap:8px; }
-
-.btn-ghost   { background:#f1f5f9; color:#111827; border:none; padding:8px 12px; cursor:pointer; border-radius:6px; }
-.btn-danger  { background:#ef4444; color:#fff; border:none; padding:8px 12px; cursor:pointer; border-radius:6px; }
-.btn-ghost:hover { background:#e5e7eb; }
-.btn-danger:hover { filter: brightness(0.95); }
-
-.empty-state { color:#6b7280; padding: 12px 0; }
-
-.diary-item--row {
-  display: flex;
-  gap: 12px;
-  align-items: flex-start;
-}
-
-.diary-thumb {
-  width: 72px;
-  height: 72px;
-  border-radius: 10px;
-  object-fit: cover;
-  flex-shrink: 0;
-  background: #f1f5f9;
-  border: 1px solid #e5e7eb;
-}
-
-.diary-item-body {
-  flex: 1;
-}
-
-@media (max-width: 560px) {
-  .diary-item-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 6px;
-  }
-  .search-input { min-width: 160px; }
+.write-button:hover {
+  background: #036947;
 }
