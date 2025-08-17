@@ -4,34 +4,32 @@
   gap: 16px;
 }
 
-/* 상단 툴바 */
 .list-toolbar {
   display: flex;
-  justify-content: flex-end; /* 오른쪽 정렬 유지 */
+  justify-content: flex-end;
   align-items: center;
 }
-
-/* 버튼이 검색 입력칸의 왼쪽에 오도록 수평 배치 */
 .toolbar-actions {
   display: flex;
   align-items: center;
-  gap: 10px; /* 버튼과 입력칸 간격 */
+  gap: 10px;
 }
-
 .write-button {
   display: inline-flex;
   align-items: center;
-  padding: 10px 14px;
-  border-radius: 10px;
-  border: 1px solid #10b981;
-  background: #10b981;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: 8px;
+  background: #047857;
+  border: none;
   color: #fff;
   font-weight: 600;
   cursor: pointer;
-  transition: transform 0.05s ease, box-shadow 0.2s ease, background 0.2s ease;
+  transition: background 0.2s ease, transform 0.05s ease;
 }
-.write-button:hover {
-  background: #0ea371;
+
+.write-button:hover { 
+  background: #036947; 
 }
 .write-button:active {
   transform: translateY(1px);
@@ -41,92 +39,91 @@
   width: 280px;
   padding: 10px 12px;
   border: 1px solid #e5e7eb;
-  border-radius: 10px;
-  background: #fff;
-  outline: none;
-}
-.search-input:focus {
-  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15);
-  border-color: #10b981;
+  border-radius: 8px;
 }
 
-/* 목록 카드 */
 .cards {
   list-style: none;
   margin: 0;
   padding: 0;
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 14px;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 20px;
 }
 
 .card {
-  display: grid;
-  grid-template-columns: 110px 1fr;
-  gap: 12px;
+  display: flex;
+  flex-direction: column;
   background: #fff;
   border: 1px solid #f0f2f4;
-  border-radius: 14px;
-  padding: 12px;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.04) inset;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.06);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  cursor: pointer;        
+}
+.card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 16px rgba(0,0,0,0.08);
 }
 
-.thumb img {
+.card-image img {
   width: 100%;
-  height: 100%;
+  height: 160px;
   object-fit: cover;
-  border-radius: 10px;
-  background: #f3f4f6;
+  background: #eef6f0;
 }
 
-.meta .title-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 8px;
+.card-body {
+  flex: 1;
+  padding: 12px 14px;
 }
-
-.title {
-  margin: 0;
+.card-body .title {
+  margin: 0 0 6px;
   font-size: 16px;
   font-weight: 700;
   color: #111827;
 }
-
-.card-actions {
-  display: inline-flex;
-  gap: 6px;
+.card-body .date {
+  margin: 0 0 8px;
+  font-size: 13px;
+  color: #6b7280;
 }
 
+.card-body .content {
+  margin: 0;
+  font-size: 14px;
+  color: #374151;
+  line-height: 1.5;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  word-break: break-word;
+}
+
+.card-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 10px 14px;
+  border-top: 1px solid #f0f2f4;
+  background: #fafafa;
+}
 .card-btn {
   padding: 6px 10px;
-  border-radius: 8px;
+  border-radius: 6px;
   border: 1px solid #e5e7eb;
   background: #f9fafb;
-  cursor: pointer;
   font-size: 12px;
+  cursor: pointer;
 }
-.card-btn:hover {
-  background: #eef2f7;
-}
+.card-btn:hover { background: #eef2f7; }
 .card-btn.danger {
   border-color: #fca5a5;
   background: #fee2e2;
 }
 
-.date {
-  margin: 4px 0 6px;
-  font-size: 12px;
-  color: #6b7280;
-}
-
-.content {
-  margin: 0;
-  font-size: 14px;
-  color: #374151;
-}
-
-/* 빈 상태 */
 .empty {
   padding: 32px 16px;
   text-align: center;
@@ -134,21 +131,4 @@
   border: 1px dashed #e5e7eb;
   border-radius: 12px;
   background: #fafafa;
-}
-
-.write-button {
-  background: #047857;
-  color: #fff;
-  border: none;
-  padding: 8px 12px;      
-  border-radius: 6px;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-}
-.write-button:hover {
-  background: #036947;
 }

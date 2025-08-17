@@ -71,7 +71,7 @@ const MainCalendar = ({ plant, tasks = [], onGoPlan }) => {
     const key = toKey(date);
 
     const dayTasksForTile = isCommonView
-      ? tasks.filter((t) => t.date === key) // 공통 뷰: 전체
+      ? tasks.filter((t) => t.date === key)
       : tasks.filter((t) => t.date === key && (t.plant || "공통") === plant);
 
     if (dayTasksForTile.length === 0) return null;
@@ -102,7 +102,7 @@ const MainCalendar = ({ plant, tasks = [], onGoPlan }) => {
     <section className="calendar-wrapper">
       <div className="calendar-pane">
         <div className="calendar-header-row">
-          <h3>{isCommonView ? "캘린더(공통 · 이번 달 전체)" : `${plant} 캘린더`}</h3>
+          <h3>{isCommonView ? "캘린더(공통)" : `${plant} 캘린더`}</h3>
         </div>
         <Calendar
           onChange={setValue}
@@ -139,7 +139,7 @@ const MainCalendar = ({ plant, tasks = [], onGoPlan }) => {
           {isCommonView ? (
             monthGroups.length === 0 ? (
               <div className="schedule-empty">
-                <b>공통(전체)</b>에 등록된 일정이 없습니다.
+                <b>등록된 일정이 없습니다.</b>
                 <div className="hint">달력에서 날짜를 선택한 뒤 “일정 추가”를 눌러보세요.</div>
               </div>
             ) : (

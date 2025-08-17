@@ -1,4 +1,3 @@
-// src/pages/MyPage.jsx
 import React, { useEffect, useState } from "react";
 import "../styles/MyPage.css";
 import Header from "../components/Header";
@@ -8,6 +7,7 @@ import NavTabs from "../components/NavTabs";
 import MainCalendar from "../components/MainCalendar";
 import DiaryList from "../components/DiaryList";
 import DiaryModal from "../components/DiaryModal";
+import DiaryViewModal from "../components/DiaryViewModal";  
 import ProfileSettings from "../components/ProfileSettings";
 import PlanAdd from "../components/PlanAdd";
 
@@ -21,6 +21,8 @@ const MyPage = () => {
   const [entries, setEntries] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingEntry, setEditingEntry] = useState(null);
+
+  const [viewEntry, setViewEntry] = useState(null);       
 
   const [tasks, setTasks] = useState([]);
   const [planDate, setPlanDate] = useState("");
@@ -53,6 +55,7 @@ const MyPage = () => {
     if (!id) return;
     if (!window.confirm("이 일지를 삭제하시겠습니까?")) return;
     setEntries((prev) => prev.filter((e) => (e.id ?? e._id) !== id));
+    setViewEntry(null);
   };
 
   const goPlanTabWithDate = (dateStr) => {
@@ -81,7 +84,7 @@ const MyPage = () => {
 
           {activeTab === "calendar" && (
             <MainCalendar
-              plant={selectedPlant}       
+              plant={selectedPlant}
               tasks={tasks}
               onGoPlan={goPlanTabWithDate}
             />
@@ -101,6 +104,7 @@ const MyPage = () => {
                   setIsModalOpen(true);
                 }}
                 onDelete={handleDeleteDiary}
+                onView={(entry) => setViewEntry(entry)} 
               />
 
               <DiaryModal
@@ -112,6 +116,18 @@ const MyPage = () => {
                 initial={editingEntry}
                 selectedPlant={selectedPlant}
                 onSave={handleSaveDiary}
+              />
+
+              <DiaryViewModal
+                open={!!viewEntry}
+                entry={viewEntry}
+                onClose={() => setViewEntry(null)}
+                onEdit={(entry) => {
+                  setViewEntry(null);
+                  setEditingEntry(entry);
+                  setIsModalOpen(true);
+                }}
+                onDelete={handleDeleteDiary}
               />
             </>
           )}

@@ -11,6 +11,7 @@ const DiaryList = ({
   onEdit,
   onAdd,
   onDelete,
+  onView,            
   loading = false,
 }) => {
   const [query, setQuery] = useState("");
@@ -27,14 +28,12 @@ const DiaryList = ({
 
   return (
     <div className="diary-list">
-      {/* 상단 툴바: 버튼이 입력칸 왼쪽에 오도록 구성 */}
       <div className="list-toolbar">
         <div className="toolbar-actions">
           <button type="button" className="write-button" onClick={onAdd}>
             <FaPen style={{ marginRight: 6 }} />
             일지 작성
           </button>
-
           <input
             className="search-input"
             type="text"
@@ -51,44 +50,53 @@ const DiaryList = ({
         <div className="empty">해당 조건에 맞는 일지가 없습니다.</div>
       ) : (
         <ul className="cards">
-          {filtered.map((e) => (
-            <li className="card" key={e.id || e._id || e.createdAt}>
-              <div className="thumb">
-                <img
-                  src={e.imageUrl || e.image || DEFAULT_IMAGE}
-                  alt={e.title || "diary"}
-                  onError={(ev) => {
-                    ev.currentTarget.src = DEFAULT_IMAGE;
-                  }}
-                />
-              </div>
-              <div className="meta">
-                <div className="title-row">
-                  <h3 className="title">{e.title || "제목 없음"}</h3>
-                  <div className="card-actions">
-                    <button
-                      className="card-btn"
-                      onClick={() => onEdit && onEdit(e)}
-                    >
-                      수정
-                    </button>
-                    <button
-                      className="card-btn danger"
-                      onClick={() => onDelete && onDelete(e)}
-                    >
-                      삭제
-                    </button>
-                  </div>
+          {filtered.map((e) => {
+            const key = e.id || e._id || e.createdAt;
+            return (
+              <li
+                className="card"
+                key={key}
+                onClick={() => onView && onView(e)}     
+              >
+                <div className="card-image">
+                  <img
+                    src={e.imageUrl || e.image || DEFAULT_IMAGE}
+                    alt={e.title || "diary"}
+                    onError={(ev) => {
+                      ev.currentTarget.src = DEFAULT_IMAGE;
+                    }}
+                  />
                 </div>
-                <p className="date">
-                  {e.date
-                    ? new Date(e.date).toLocaleDateString()
-                    : "날짜 없음"}
-                </p>
-                <p className="content">{e.content || "내용 없음"}</p>
-              </div>
-            </li>
-          ))}
+                <div className="card-body">
+                  <h3 className="title">{e.title || "제목 없음"}</h3>
+                  <p className="date">
+                    {e.date ? new Date(e.date).toLocaleDateString() : "날짜 없음"}
+                  </p>
+                  <p className="content">{e.content || "내용 없음"}</p>
+                </div>
+                <div className="card-footer">
+                  <button
+                    className="card-btn"
+                    onClick={(ev) => {
+                      ev.stopPropagation();        
+                      onEdit && onEdit(e);
+                    }}
+                  >
+                    수정
+                  </button>
+                  <button
+                    className="card-btn danger"
+                    onClick={(ev) => {
+                      ev.stopPropagation();              
+                      onDelete && onDelete(e);
+                    }}
+                  >
+                    삭제
+                  </button>
+                </div>
+              </li>
+            );
+          })}
         </ul>
       )}
     </div>
