@@ -78,7 +78,7 @@ function timeAgo(iso) {
 }
 
 const PostCard = ({ p }) => (
-  <Link to={`/Community/${p.id}`} className="post-card post-link">
+  <Link to={`/Community/${p.id}`} className="post-link">
     <div className="post-icon" aria-hidden>{p.icon}</div>
     <div className="post-main">
       <header className="post-head">
@@ -107,6 +107,7 @@ const PostCard = ({ p }) => (
         <span className="meta">👍 {p.likes}</span>
         <span className="meta">💬 {p.replies}</span>
       </footer>
+
       <div className="tag-wrap">
         {p.tags.map(t => <span key={t} className="tag">#{t}</span>)}
       </div>
@@ -121,7 +122,6 @@ const ComposeForm = ({ onSubmit, onClose }) => {
   const [content, setContent] = useState("");
   const [images, setImages] = useState([]);
   const [files, setFiles] = useState([]);
-
   const fileInputRef = useRef(null);
 
   const onPickFiles = (e) => {
@@ -306,13 +306,15 @@ const Community = () => {
         <section className="comm-left">
           {/* 상단 컨트롤 */}
           <div className="toolbar">
-            <div className="tabs">
+            <div className="tabs" role="tablist" aria-label="게시판 탭">
               {["전체","질문","일지","노하우"].map(t=>(
                 <button
                   key={t}
                   className={`tab ${tab===t ? "active":""}`}
                   onClick={()=>setTab(t)}
                   type="button"
+                  role="tab"
+                  aria-selected={tab===t}
                 >
                   {t}
                 </button>
@@ -325,16 +327,24 @@ const Community = () => {
                   value={q}
                   onChange={(e)=>setQ(e.target.value)}
                   placeholder="검색 (제목/내용/태그)"
+                  aria-label="게시글 검색"
                 />
-                <span className="search-ico">🔍</span>
+              
               </div>
-              <select className="select" value={sort} onChange={(e)=>setSort(e.target.value)}>
+
+              <select
+                className="select"
+                value={sort}
+                onChange={(e)=>setSort(e.target.value)}
+                aria-label="정렬 선택"
+              >
                 <option>최신순</option>
                 <option>인기순</option>
                 <option>댓글많은순</option>
               </select>
+
               <button className="write-btn" type="button" onClick={()=>setComposeOpen(true)}>
-                ✍️ 글쓰기
+              글쓰기
               </button>
             </div>
           </div>
