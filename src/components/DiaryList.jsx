@@ -11,20 +11,34 @@ const DiaryList = ({
   onEdit,
   onAdd,
   onDelete,
-  onView,            
+  onView,
   loading = false,
 }) => {
   const [query, setQuery] = useState("");
+  const [sortOrder, setSortOrder] = useState("latest"); // ⬅️ 정렬 상태 (latest | oldest)
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    if (!q) return entries;
-    return entries.filter((e) => {
-      const title = (e?.title || "").toLowerCase();
-      const content = (e?.content || "").toLowerCase();
-      return title.includes(q) || content.includes(q);
+    let list = entries;
+
+    // 검색 필터
+    if (q) {
+      list = list.filter((e) => {
+        const title = (e?.title || "").toLowerCase();
+        const content = (e?.content || "").toLowerCase();
+        return title.includes(q) || content.includes(q);
+      });
+    }
+
+    // 정렬 적용
+    list = [...list].sort((a, b) => {
+      const da = new Date(a.date);
+      const db = new Date(b.date);
+      return sortOrder === "latest" ? db - da : da - db;
     });
-  }, [entries, query]);
+
+    return list;
+  }, [entries, query, sortOrder]);
 
   return (
     <div className="diary-list">
@@ -41,6 +55,15 @@ const DiaryList = ({
             value={query}
             onChange={(e) => setQuery(e.target.value)}
           />
+          {/* 정렬 드롭다운 */}
+          <select
+            value={sortOrder}
+            onChange={(e) => setSortOrder(e.target.value)}
+            style={{ padding: "8px", borderRadius: "6px", border: "1px solid #ddd" }}
+          >
+            <option value="latest">최신순</option>
+            <option value="oldest">날짜순</option>
+          </select>
         </div>
       </div>
 
@@ -56,7 +79,7 @@ const DiaryList = ({
               <li
                 className="card"
                 key={key}
-                onClick={() => onView && onView(e)}     
+                onClick={() => onView && onView(e)}
               >
                 <div className="card-image">
                   <img
@@ -78,7 +101,7 @@ const DiaryList = ({
                   <button
                     className="card-btn"
                     onClick={(ev) => {
-                      ev.stopPropagation();        
+                      ev.stopPropagation();
                       onEdit && onEdit(e);
                     }}
                   >
@@ -87,7 +110,7 @@ const DiaryList = ({
                   <button
                     className="card-btn danger"
                     onClick={(ev) => {
-                      ev.stopPropagation();              
+                      ev.stopPropagation();
                       onDelete && onDelete(e);
                     }}
                   >
