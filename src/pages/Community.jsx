@@ -1,4 +1,5 @@
 import React, { useMemo, useState, useRef, useEffect } from "react";
+import { createPortal } from "react-dom";
 import Header from "../components/Header";
 import "../styles/Community.css";
 import { Link } from "react-router-dom";
@@ -230,31 +231,36 @@ const ComposeForm = ({ onSubmit, onClose }) => {
   );
 };
 
-/** 모달 래퍼 */
+/** 모달 래퍼 (✅ Portal 로 body에 렌더링) */
 const ComposeModal = ({ open, onClose, onSubmit }) => {
   const panelRef = useRef(null);
 
-  // ESC로 닫기
+  // ESC로 닫기 + 바디 스크롤 잠금
   useEffect(()=>{
     if (!open) return;
     const onKey = (e) => e.key === "Escape" && onClose();
     window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
+    document.body.classList.add("modal-open");
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      document.body.classList.remove("modal-open");
+    };
   }, [open, onClose]);
 
-  // 바깥 클릭으로 닫기
   const onBackdropMouseDown = (e) => {
     if (panelRef.current && !panelRef.current.contains(e.target)) onClose();
   };
 
   if (!open) return null;
-  return (
+
+  return createPortal(
     <div className="modal-backdrop" onMouseDown={onBackdropMouseDown}>
       <div className="modal-panel" ref={panelRef} role="dialog" aria-modal="true">
         <button className="modal-close" onClick={onClose} aria-label="닫기" type="button">✕</button>
         <ComposeForm onSubmit={onSubmit} onClose={onClose}/>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };
 
@@ -329,7 +335,6 @@ const Community = () => {
                   placeholder="검색 (제목/내용/태그)"
                   aria-label="게시글 검색"
                 />
-              
               </div>
 
               <select
@@ -344,7 +349,7 @@ const Community = () => {
               </select>
 
               <button className="write-btn" type="button" onClick={()=>setComposeOpen(true)}>
-              글쓰기
+                글쓰기
               </button>
             </div>
           </div>
@@ -387,7 +392,7 @@ const Community = () => {
         </aside>
       </main>
 
-      {/* 작성 모달 */}
+      {/* 작성 모달 (Portal) */}
       <ComposeModal
         open={composeOpen}
         onClose={()=>setComposeOpen(false)}
