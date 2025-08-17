@@ -88,7 +88,6 @@ const PlantSidebar = ({ selectedPlant, setSelectedPlant }) => {
         <div className="muted">불러오는 중…</div>
       ) : (
         <ul>
-          {/* ✅ 공통 항목을 맨 위에 추가 */}
           <li className={selectedPlant === "공통" ? "selected" : ""}>
             <div className="row">
               <button
@@ -106,6 +105,12 @@ const PlantSidebar = ({ selectedPlant, setSelectedPlant }) => {
             <div className="empty-state">
               <div className="empty-emoji">🌱</div>
               <p className="empty-title">아직 등록된 작물이 없어요</p>
+              <p className="empty-desc">아래 <b>+작물 추가</b> 버튼을 눌러 첫 작물을 등록해 보세요.</p>
+              <ul className="empty-tips">
+                <li>#토마토</li>
+                <li>#상추</li>
+                <li>#오이</li>
+              </ul>
             </div>
           ) : (
             crops.map((crop, idx) => {
