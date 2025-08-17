@@ -1,4 +1,3 @@
-// src/components/MainCalendar.jsx
 import React, { useMemo, useState } from "react";
 import Calendar from "react-calendar";
 import "react-calendar/dist/Calendar.css";
@@ -8,13 +7,13 @@ const plantColor = (plant) => {
   switch (plant) {
     case "토마토":
     case "방울토마토":
-      return "#ef4444"; 
+      return "#ef4444";
     case "상추":
-      return "#10b981"; 
+      return "#10b981";
     case "오이":
-      return "#06b6d4"; 
+      return "#06b6d4";
     case "고추":
-      return "#f59e0b"; 
+      return "#f59e0b";
     case "공통":
     default:
       return "#6366f1";
@@ -27,6 +26,7 @@ function toKey(date) {
   const d = `${date.getDate()}`.padStart(2, "0");
   return `${y}-${m}-${d}`;
 }
+
 function ymdRangeOfMonth(activeStartDate) {
   const start = new Date(activeStartDate.getFullYear(), activeStartDate.getMonth(), 1);
   const end = new Date(activeStartDate.getFullYear(), activeStartDate.getMonth() + 1, 0);
@@ -35,10 +35,9 @@ function ymdRangeOfMonth(activeStartDate) {
   return { start, end, startStr, endStr };
 }
 
-
-const MainCalendar = ({ plant, tasks = [], onGoPlan }) => {
+const MainCalendar = ({ plant, tasks = [], onGoPlan, onEventClick }) => {
   const [value, setValue] = useState(new Date());
-  const [activeStartDate, setActiveStartDate] = useState(new Date()); 
+  const [activeStartDate, setActiveStartDate] = useState(new Date());
 
   const selectedKey = useMemo(() => toKey(value), [value]);
   const isCommonView = !plant || plant === "공통";
@@ -87,9 +86,23 @@ const MainCalendar = ({ plant, tasks = [], onGoPlan }) => {
             className="cal-dot"
             style={{ backgroundColor: t.color || plantColor(t.plant || "공통") }}
             title={`${t.plant || "공통"}: ${t.text}`}
+            onClick={(e) => {
+              e.stopPropagation();
+              onEventClick && onEventClick(t);
+            }}
           />
         ))}
-        {extra > 0 && <span className="cal-plus">+{extra}</span>}
+        {extra > 0 && (
+          <span
+            className="cal-plus"
+            onClick={(e) => {
+              e.stopPropagation();
+              onEventClick && onEventClick(dayTasksForTile[0]);
+            }}
+          >
+            +{extra}
+          </span>
+        )}
       </div>
     );
   };
@@ -119,7 +132,7 @@ const MainCalendar = ({ plant, tasks = [], onGoPlan }) => {
         <div className="schedule-card">
           <div className="schedule-head">
             <div className="schedule-title">
-              {isCommonView ? "📅 이번 달 전체 일정" : "📋 선택한 날짜의 일정"}
+              {isCommonView ? "📅 월별 일정" : "📋 선택한 날짜의 일정"}
             </div>
             <div className="schedule-date">
               {isCommonView
@@ -149,16 +162,21 @@ const MainCalendar = ({ plant, tasks = [], onGoPlan }) => {
                     <div className="group-date">{g.date}</div>
                     <ul className="group-list">
                       {g.items.map((t) => (
-                        <li key={t.id} className="group-item">
+                        <li
+                          key={t.id}
+                          className="group-item"
+                          onClick={() => onEventClick && onEventClick(t)}
+                        >
                           <span
                             className="dot"
                             style={{ backgroundColor: t.color || plantColor(t.plant || "공통") }}
                           />
-                          <span className="plant-chip"
-                                style={{
-                                  backgroundColor: (t.color || plantColor(t.plant || "공통")) + "22",
-                                  borderColor: t.color || plantColor(t.plant || "공통"),
-                                }}
+                          <span
+                            className="plant-chip"
+                            style={{
+                              backgroundColor: (t.color || plantColor(t.plant || "공통")) + "22",
+                              borderColor: t.color || plantColor(t.plant || "공통"),
+                            }}
                           >
                             {t.plant || "공통"}
                           </span>
@@ -170,8 +188,7 @@ const MainCalendar = ({ plant, tasks = [], onGoPlan }) => {
                 ))}
               </div>
             )
-          ) : 
-          dayTasks.length === 0 ? (
+          ) : dayTasks.length === 0 ? (
             <div className="schedule-empty">
               <b>{currentPlant}</b>에 등록된 일정이 없습니다.
               <div className="hint">달력에서 날짜를 선택한 뒤 “일정 추가”를 눌러보세요.</div>
@@ -179,7 +196,11 @@ const MainCalendar = ({ plant, tasks = [], onGoPlan }) => {
           ) : (
             <ul className="schedule-list">
               {dayTasks.map((t) => (
-                <li key={t.id} className="schedule-item">
+                <li
+                  key={t.id}
+                  className="schedule-item"
+                  onClick={() => onEventClick && onEventClick(t)}
+                >
                   <span
                     className="dot"
                     style={{ backgroundColor: t.color || plantColor(t.plant || "공통") }}

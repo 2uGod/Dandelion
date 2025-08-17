@@ -67,3 +67,8 @@
   background:#eef2ff;
 }
 .task-text{display:inline-block;}
+
+.schedule-item,
+.group-item {
+  cursor: pointer;
+}

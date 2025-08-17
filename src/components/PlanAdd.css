@@ -100,3 +100,7 @@
   outline: 2px solid #111827;
   outline-offset: 1px;
 }
+
+.swatch {
+  cursor: pointer;
+}

@@ -132,3 +132,8 @@
   border-radius: 12px;
   background: #fafafa;
 }
+
+.cards li,
+.diary-card {
+  cursor: pointer;
+}

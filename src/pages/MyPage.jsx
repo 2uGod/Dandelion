@@ -7,9 +7,10 @@ import NavTabs from "../components/NavTabs";
 import MainCalendar from "../components/MainCalendar";
 import DiaryList from "../components/DiaryList";
 import DiaryModal from "../components/DiaryModal";
-import DiaryViewModal from "../components/DiaryViewModal";  
+import DiaryViewModal from "../components/DiaryViewModal";
 import ProfileSettings from "../components/ProfileSettings";
 import PlanAdd from "../components/PlanAdd";
+import ScheduleEditModal from "../components/ScheduleEditModal";
 
 const STORAGE_KEY = "farmunity_diary_entries";
 const TASKS_KEY = "farmunity_tasks";
@@ -22,10 +23,13 @@ const MyPage = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingEntry, setEditingEntry] = useState(null);
 
-  const [viewEntry, setViewEntry] = useState(null);       
+  const [viewEntry, setViewEntry] = useState(null);
 
   const [tasks, setTasks] = useState([]);
   const [planDate, setPlanDate] = useState("");
+
+  const [editTask, setEditTask] = useState(null);
+  const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
 
   useEffect(() => {
     const savedEntries = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
@@ -68,16 +72,27 @@ const MyPage = () => {
     setActiveTab("calendar");
   };
 
+  const openTaskModal = (task) => {
+    setEditTask(task);
+    setIsTaskModalOpen(true);
+  };
+
+  const handleTaskUpdate = (updated) => {
+    setTasks((prev) => prev.map((t) => (t.id === updated.id ? { ...t, ...updated } : t)));
+  };
+
+  const handleTaskDelete = (id) => {
+    if (!window.confirm("이 일정을 삭제하시겠습니까?")) return;
+    setTasks((prev) => prev.filter((t) => t.id !== id));
+  };
+
   return (
     <div className="mypage-wrapper">
       <Header />
       <WeatherBar />
 
       <div className="mypage-body">
-        <PlantSidebar
-          selectedPlant={selectedPlant}
-          setSelectedPlant={setSelectedPlant}
-        />
+        <PlantSidebar selectedPlant={selectedPlant} setSelectedPlant={setSelectedPlant} />
 
         <main className="mypage-main">
           <NavTabs activeTab={activeTab} setActiveTab={setActiveTab} />
@@ -87,6 +102,7 @@ const MyPage = () => {
               plant={selectedPlant}
               tasks={tasks}
               onGoPlan={goPlanTabWithDate}
+              onEventClick={openTaskModal}
             />
           )}
 
@@ -104,7 +120,7 @@ const MyPage = () => {
                   setIsModalOpen(true);
                 }}
                 onDelete={handleDeleteDiary}
-                onView={(entry) => setViewEntry(entry)} 
+                onView={(entry) => setViewEntry(entry)}
               />
 
               <DiaryModal
@@ -133,16 +149,20 @@ const MyPage = () => {
           )}
 
           {activeTab === "plan" && (
-            <PlanAdd
-              selectedPlant={selectedPlant}
-              initialDate={planDate}
-              onAddTask={handleAddTask}
-            />
+            <PlanAdd selectedPlant={selectedPlant} initialDate={planDate} onAddTask={handleAddTask} />
           )}
 
           {activeTab === "settings" && <ProfileSettings />}
         </main>
       </div>
+
+      <ScheduleEditModal
+        open={isTaskModalOpen}
+        task={editTask}
+        onClose={() => setIsTaskModalOpen(false)}
+        onUpdate={handleTaskUpdate}
+        onDelete={handleTaskDelete}
+      />
     </div>
   );
 };
