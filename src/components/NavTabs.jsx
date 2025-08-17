@@ -5,7 +5,7 @@ import "./NavTabs.css"
 const NavTabs = ({ activeTab, setActiveTab }) => {
   const tabs = [
     { label: "캘린더", key: "calendar" },
-    { label: "일정 추가", key: "plan" }, 
+    { label: "일정관리", key: "plan" }, 
     { label: "농사일지", key: "journal" },
     { label: "설정", key: "settings" },
   ];
