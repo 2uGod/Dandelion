@@ -11,7 +11,7 @@ const RegisterForm = () => {
     email: "",
     password: "",
     confirmPassword: "",
-    userType: "hobby",
+    userType: "HOBBY",
   });
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);

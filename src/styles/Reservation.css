@@ -24,29 +24,85 @@
 @media(min-width: 720px){ .rs-grid{ grid-template-columns: 1fr 1fr; } }
 
 .rs-card{
-  display:grid; grid-template-columns:60px 1fr auto; gap:12px;
-  border:1px solid #e5e7eb; border-radius:12px; padding:12px; background:#fff;
+  display:flex; flex-direction:column; gap:16px;
+  border:1px solid #e5e7eb; border-radius:12px; padding:16px; background:#fff;
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+  cursor: pointer;
+}
+.rs-card:hover{
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  transform: translateY(-2px);
+}
+.rs-card-header{
+  display: flex; align-items: center; gap: 12px;
 }
 .rs-card-cover{
-  width:60px; height:60px; display:grid; place-items:center; font-size:28px; background:#f3f4f6; border-radius:10px;
+  width:50px; height:50px; display:grid; place-items:center; font-size:24px; background:#f3f4f6; border-radius:10px;
+  flex-shrink: 0;
 }
-.rs-card-title{ margin:0 0 6px; font-size:17px; }
-.rs-card-meta{ color:#666; font-size:13px; }
-.rs-card-desc{ color:#333; font-size:14px; margin:6px 0; }
-.rs-tagwrap{ display:flex; gap:6px; flex-wrap:wrap; }
-.rs-tag{ font-size:12px; padding:2px 8px; border-radius:999px; background:#e7f5ef; color:#047857; }
-.rs-card-actions{ display:flex; align-items:center; }
+.rs-card-main{ flex: 1; }
+.rs-card-title{ margin:0 0 6px; font-size:18px; font-weight: 600; }
+.rs-card-meta{ color:#666; font-size:13px; margin-bottom: 8px; }
+.rs-card-schedule{ color:#555; font-size:13px; margin-bottom: 6px; }
+.rs-card-participants{ color:#555; font-size:13px; margin-bottom: 8px; }
+.rs-card-desc{ color:#333; font-size:14px; margin:8px 0; line-height: 1.4; }
+.rs-tagwrap{ display:flex; gap:6px; flex-wrap:wrap; margin-bottom: 12px; }
+.rs-tag{ font-size:12px; padding:3px 8px; border-radius:999px; background:#e7f5ef; color:#047857; }
+.rs-card-actions{ display:flex; justify-content: flex-end; margin-top: auto; }
+.rs-experience-info{
+  background: #f8f9fa; padding: 12px; border-radius: 8px; margin-bottom: 16px;
+}
+.rs-experience-info p{
+  margin: 4px 0;
+  font-size: 14px;
+}
 
 .rs-box{ border:1px solid #e5e7eb; border-radius:12px; padding:12px; margin-top:16px; }
 .rs-book-list{ list-style:none; padding:0; margin:0; display:grid; gap:8px; }
 .rs-book-row{
-  display:grid; grid-template-columns: 1fr 120px 80px auto; align-items:center;
-  border:1px solid #f0f0f0; border-radius:10px; padding:10px;
+  display:flex; justify-content: space-between; align-items:center;
+  border:1px solid #f0f0f0; border-radius:10px; padding:12px; margin-bottom: 8px;
+  background: #fafafa;
+  transition: background-color 0.2s ease;
 }
-.rs-book-title{ font-weight:600; }
-.rs-book-date{ color:#333; }
+.rs-book-row:hover{
+  background: #f5f5f5;
+}
+.rs-book-info{
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.rs-book-title{ font-weight:600; margin-bottom: 2px; }
+.rs-book-date{ color:#555; font-size: 14px; }
 .rs-book-meta{ color:#666; font-size:13px; }
-.rs-row-actions{ display:flex; gap:6px; justify-self:end; }
+.rs-book-guest{ color:#777; font-size:12px; }
+.rs-book-message{ color:#666; font-size:12px; font-style:italic; }
+.rs-book-status{
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.rs-row-actions{ display:flex; gap:6px; }
+.rs-row-actions button{
+  padding: 4px 8px;
+  font-size: 12px;
+  border-radius: 4px;
+}
+
+@media(max-width:560px){
+  .rs-book-row{ 
+    flex-direction: column; 
+    align-items: flex-start; 
+    gap: 12px; 
+  }
+  .rs-book-status{
+    align-self: stretch;
+    justify-content: space-between;
+  }
+  .rs-grid2{ grid-template-columns: 1fr; }
+}
 
 .rs-badge{
   justify-self:start; font-size:12px; padding:2px 8px; border-radius:999px;
@@ -66,13 +122,174 @@
 }
 .btn-solid:disabled{ opacity:.5; cursor:not-allowed; }
 
+/* 새로운 카드형 예약 박스 스타일 */
+.rs-book-card{ 
+  background: #fff;
+  border: 1px solid #e5e7eb; 
+  border-radius: 12px; 
+  margin-bottom: 16px;
+  padding: 20px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  transition: box-shadow 0.2s ease, border-color 0.2s ease;
+}
+.rs-book-card:hover{ 
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  border-color: #d1d5db;
+}
+
+/* 헤더 영역 */
+.rs-book-header{ 
+  display: flex; 
+  justify-content: space-between; 
+  align-items: flex-start; 
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #f3f4f6;
+}
+.rs-book-header .rs-book-title{ 
+  font-size: 18px;
+  font-weight: 600; 
+  margin: 0;
+  color: #111827;
+  line-height: 1.3;
+}
+
+/* 상태 배지 */
+.rs-status-badge{
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.rs-status-badge.pending{ 
+  background: #fef3c7; 
+  color: #92400e; 
+  border: 1px solid #fcd34d;
+}
+.rs-status-badge.confirmed{ 
+  background: #d1fae5; 
+  color: #065f46; 
+  border: 1px solid #34d399;
+}
+.rs-status-badge.cancelled{ 
+  background: #fee2e2; 
+  color: #991b1b; 
+  border: 1px solid #f87171;
+}
+
+/* 상세 정보 영역 */
+.rs-book-details{ 
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.rs-book-info-row{ 
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 6px 0;
+}
+.rs-info-label{ 
+  font-size: 14px;
+  font-weight: 500;
+  color: #6b7280;
+  min-width: 140px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.rs-info-value{ 
+  font-size: 14px;
+  color: #111827;
+  flex: 1;
+}
+.rs-message-text{
+  font-style: italic;
+  background: #f9fafb;
+  padding: 8px 12px;
+  border-radius: 6px;
+  border: 1px solid #e5e7eb;
+  margin-top: 4px;
+}
+
+/* 액션 버튼 영역 */
+.rs-book-actions{ 
+  display: flex; 
+  gap: 10px; 
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid #f3f4f6;
+  justify-content: flex-end;
+}
+.btn-approve{
+  background: #047857;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 12px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.2s ease;
+}
+.btn-approve:hover{
+  background: #065f46;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+.btn-reject{
+  background: #fff;
+  color: #6b7280;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 8px 12px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.2s ease;
+}
+.btn-reject:hover{
+  background: #f9fafb;
+  border-color: #9ca3af;
+  color: #374151;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+/* 반응형 디자인 */
+@media(max-width:768px){
+  .rs-book-card{ 
+    padding: 16px; 
+  }
+  .rs-book-header{ 
+    flex-direction: column; 
+    gap: 12px; 
+    align-items: flex-start;
+  }
+  .rs-info-label{ 
+    min-width: 120px; 
+    font-size: 13px;
+  }
+  .rs-info-value{ 
+    font-size: 13px; 
+  }
+  .rs-book-actions{
+    justify-content: stretch;
+  }
+  .btn-approve, .btn-reject{
+    flex: 1;
+    text-align: center;
+  }
+}
+
 /* -------- 모달 -------- */
 .rs-modal-backdrop{
   position: fixed; inset: 0; background: rgba(17,24,39,.45);
   display:flex; align-items:center; justify-content:center; z-index:1000;
 }
 .rs-modal-panel{
-  width:min(720px, 92vw); background:#fff; border-radius:14px; border:1px solid #e5e7eb;
+  width:min(720px, 92vw); max-height:90vh; overflow-y:auto; 
+  background:#fff; border-radius:14px; border:1px solid #e5e7eb;
   box-shadow: 0 20px 50px rgba(0,0,0,.18); padding:18px; position:relative;
 }
 .rs-modal-close{
@@ -81,14 +298,81 @@
 }
 
 /* 폼 */
-.rs-form{ display:flex; flex-direction:column; gap:10px; }
-.rs-modal-title{ margin:0 0 6px; }
-.rs-label{ display:flex; flex-direction:column; gap:6px; font-size:14px; }
+.rs-form{ display:flex; flex-direction:column; gap:16px; }
+.rs-modal-title{ margin:0 0 16px; font-size: 20px; font-weight: 600; }
+.rs-form-section{ display: flex; flex-direction: column; gap: 8px; }
+.rs-label{ display:flex; flex-direction:column; gap:6px; font-size:14px; font-weight: 500; }
 .rs-label input, .rs-label textarea{
   border:1px solid #ddd; border-radius:8px; padding:10px; width:100%;
+  font-size: 14px;
+  transition: border-color 0.2s ease;
 }
-.rs-grid2{ display:grid; grid-template-columns: 1fr 1fr; gap:8px; }
-.rs-form-actions{ display:flex; gap:8px; justify-content:flex-end; margin-top:6px; }
+.rs-label input:focus, .rs-label textarea:focus{
+  outline: none;
+  border-color: #047857;
+  box-shadow: 0 0 0 2px rgba(4, 120, 87, 0.1);
+}
+.rs-grid2{ display:grid; grid-template-columns: 1fr 1fr; gap:12px; }
+.rs-form-actions{ display:flex; gap:8px; justify-content:flex-end; margin-top:16px; }
+.rs-form-hint{ font-size: 12px; color: #666; margin-top: 4px; }
+
+/* 툴팁 호버 효과 */
+.tooltip-container:hover .tooltip {
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+/* 태그 입력 */
+.rs-tag-input-container{ 
+  border: 1px solid #ddd; 
+  border-radius: 8px; 
+  padding: 6px 8px;
+  min-height: 40px;
+  transition: border-color 0.2s ease;
+}
+.rs-tag-input-container:focus-within{
+  border-color: #047857;
+  box-shadow: 0 0 0 2px rgba(4, 120, 87, 0.1);
+}
+.rs-tag-list{
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+}
+.rs-tag-item{
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: #e7f5ef;
+  color: #047857;
+  padding: 3px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+}
+.rs-tag-remove{
+  background: none;
+  border: none;
+  color: #047857;
+  cursor: pointer;
+  padding: 0;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  font-size: 12px;
+  line-height: 1;
+}
+.rs-tag-remove:hover{
+  background: rgba(4, 120, 87, 0.1);
+}
+.rs-tag-input{
+  border: none;
+  outline: none;
+  flex: 1;
+  min-width: 100px;
+  padding: 4px;
+  font-size: 14px;
+}
 
 @media(max-width:560px){
   .rs-book-row{ grid-template-columns: 1fr 92px 64px auto; }

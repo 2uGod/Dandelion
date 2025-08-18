@@ -14,11 +14,10 @@ export default function CommunityDetail(){
   const { id } = useParams();
   const nav = useNavigate();
   const { user, userProfile, isLoggedIn } = useAuth();
-  
+
   const [post, setPost] = useState(null);
   const [loading, setLoading] = useState(true);
   const [comments, setComments] = useState([]);
-  const [writer, setWriter] = useState("");
   const [text, setText] = useState("");
   const [isLiked, setIsLiked] = useState(false);
   const [likesCount, setLikesCount] = useState(0);
@@ -26,7 +25,7 @@ export default function CommunityDetail(){
   const [isAnonymous, setIsAnonymous] = useState(false);
   const [editingComment, setEditingComment] = useState(null);
   const [editText, setEditText] = useState("");
-  
+
   // 댓글 목록 가져오기
   const fetchComments = useCallback(async () => {
     try {
@@ -72,7 +71,7 @@ export default function CommunityDetail(){
         console.error('좋아요 상태 조회 실패:', error);
       }
     };
-    
+
     if (id) {
       fetchPost();
       fetchComments();
@@ -90,7 +89,7 @@ export default function CommunityDetail(){
       </div>
     );
   }
-  
+
   if (!post) {
     return (
       <div className="community-wrap">
@@ -105,42 +104,19 @@ export default function CommunityDetail(){
   const onSubmit = async (e) => {
     e.preventDefault();
     if (!text.trim()) return;
-    
+
     if (!isLoggedIn) {
       alert('로그인이 필요합니다.');
       return;
     }
-    
+
     try {
       const commentData = {
         content: text.trim(),
         isAnonymous: isAnonymous
       };
-      
-      // 백엔드 API 스펙에 따른 다른 형식도 시도
-      console.log('다른 형식 테스트 1 - anonymous 필드명 사용:');
-      const alternativeData1 = {
-        content: text.trim(),
-        anonymous: isAnonymous
-      };
-      console.log('alternativeData1:', alternativeData1);
-      
-      console.log('다른 형식 테스트 2 - 추가 필드 포함:');
-      const alternativeData2 = {
-        content: text.trim(),
-        isAnonymous: isAnonymous,
-        postId: parseInt(id)
-      };
-      console.log('alternativeData2:', alternativeData2);
-      
-      console.log('댓글 작성 요청 데이터:', {
-        postId: id,
-        commentData: commentData,
-        user: user,
-        userProfile: userProfile,
-        isLoggedIn: isLoggedIn
-      });
-      
+
+
       const response = await communityApi.createComment(id, commentData);
       if (response.success) {
         // 댓글 목록 다시 불러오기
@@ -159,7 +135,7 @@ export default function CommunityDetail(){
       alert('로그인이 필요합니다.');
       return;
     }
-    
+
     try {
       // POST API만 호출 (토글 방식)
       const response = await communityApi.likePost(id);
@@ -232,7 +208,7 @@ export default function CommunityDetail(){
   // 게시글 삭제
   const handleDelete = async () => {
     if (!confirm('정말 삭제하시겠습니까?')) return;
-    
+
     try {
       const response = await communityApi.deletePost(id);
       if (response.success) {
@@ -251,7 +227,7 @@ export default function CommunityDetail(){
       <main className="comm-container detail">
         <section className="detail-left">
           <div className="detail-head">
-            <Link to="/Community" className="back-link">← 목록으로</Link>
+            <Link to="/Community" className="back-link"> ← 목록으로 </Link>
             <span className="post-type">{post.type}</span>
             <h2 className="detail-title">{post.title}</h2>
             <div className="post-meta">
@@ -266,7 +242,7 @@ export default function CommunityDetail(){
           <div className="detail-actions">
             <button className="btn-outline" onClick={()=>nav(-1)}>뒤로</button>
             <div className="spacer" />
-            <button 
+            <button
               className={`btn-solid ${isLiked ? 'liked' : ''}`}
               onClick={handleLike}
               disabled={!isLoggedIn}
@@ -358,7 +334,7 @@ export default function CommunityDetail(){
                       <span className="c-time">{time(c.createdAt)}</span>
                       {isLoggedIn && user && c.user && (user.id === c.user.id || user.sub === c.user.id) && (
                         <div className="comment-actions" style={{marginLeft: 'auto', display: 'flex', gap: '5px'}}>
-                          <button 
+                          <button
                             onClick={() => handleEditComment(c)}
                             style={{
                               padding: '4px 10px',
@@ -382,7 +358,7 @@ export default function CommunityDetail(){
                           >
                             ✏️ 수정
                           </button>
-                          <button 
+                          <button
                             onClick={() => handleDeleteComment(c.id)}
                             style={{
                               padding: '4px 10px',
@@ -416,7 +392,7 @@ export default function CommunityDetail(){
                           onChange={(e) => setEditText(e.target.value)}
                           rows={3}
                           style={{
-                            width: '100%', 
+                            width: '100%',
                             marginBottom: '10px',
                             borderRadius: '12px',
                             border: '2px solid #e0e0e0',
@@ -433,7 +409,7 @@ export default function CommunityDetail(){
                           }}
                         />
                         <div style={{display: 'flex', gap: '8px'}}>
-                          <button 
+                          <button
                             onClick={() => handleUpdateComment(c.id)}
                             style={{
                               padding: '6px 14px',
@@ -457,7 +433,7 @@ export default function CommunityDetail(){
                           >
                             💾 저장
                           </button>
-                          <button 
+                          <button
                             onClick={handleCancelEdit}
                             style={{
                               padding: '6px 14px',
@@ -504,7 +480,7 @@ export default function CommunityDetail(){
           </div>
         </aside>
       </main>
-      
+
       {/* 수정 모달 */}
       <EditModal
         isOpen={isEditModalOpen}
