@@ -1,11 +1,10 @@
 // src/components/DiaryModal.jsx
 import React, { useEffect, useState } from "react";
 import "./DiaryModal.css"
-// 🌱 기본 썸네일 (SVG data URL)
+
 const DEFAULT_IMAGE =
   "data:image/svg+xml;utf8,%3Csvg xmlns%3D%22http%3A//www.w3.org/2000/svg%22 width%3D%22200%22 height%3D%22200%22 viewBox%3D%220 0 200 200%22%3E%3Crect width%3D%22200%22 height%3D%22200%22 rx%3D%2224%22 fill%3D%22%23e5f7ef%22/%3E%3Ctext x%3D%2250%25%22 y%3D%2255%25%22 dominant-baseline%3D%22middle%22 text-anchor%3D%22middle%22 font-size%3D%2272%22%3E%F0%9F%8C%B1%3C/text%3E%3C/svg%3E";
 
-// 브라우저에서 이미지 리사이즈(최대 1280px) 후 dataURL(JPEG)로 반환
 async function compressImage(file, maxSize = 1280, quality = 0.8) {
   const dataUrl = await new Promise((resolve, reject) => {
     const fr = new FileReader();
@@ -48,7 +47,7 @@ const DiaryModal = ({ open, onClose, onSave, initial, selectedPlant }) => {
       setContent(initial.content || "");
       setImageData(initial.image || DEFAULT_IMAGE);
     } else {
-      setDate(new Date().toISOString().slice(0, 10)); // 오늘
+      setDate(new Date().toISOString().slice(0, 10));
       setTitle("");
       setContent("");
       setImageData(DEFAULT_IMAGE);
@@ -74,15 +73,18 @@ const DiaryModal = ({ open, onClose, onSave, initial, selectedPlant }) => {
       alert("날짜와 제목을 입력해주세요.");
       return;
     }
+
+    // ✨ 수정 시 기존 id 유지
     const payload = {
-      id: initial?.id ?? Date.now(),
+      id: initial?.id || Date.now(),
       date,
       title,
       content,
       image: imageData || DEFAULT_IMAGE,
       plant: selectedPlant,
     };
-    onSave(payload, !!initial);
+
+    onSave(payload, Boolean(initial));
   };
 
   return (
@@ -108,7 +110,6 @@ const DiaryModal = ({ open, onClose, onSave, initial, selectedPlant }) => {
             onChange={(e) => setContent(e.target.value)}
           />
 
-          {/* 이미지 업로더 */}
           <div className="image-uploader">
             <div className="image-box">
               <img src={imageData || DEFAULT_IMAGE} alt="미리보기" className="image-preview" />
@@ -130,7 +131,6 @@ const DiaryModal = ({ open, onClose, onSave, initial, selectedPlant }) => {
                 이미지 제거
               </button>
             </div>
-            
           </div>
 
           <div className="hint">

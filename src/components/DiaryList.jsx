@@ -15,13 +15,12 @@ const DiaryList = ({
   loading = false,
 }) => {
   const [query, setQuery] = useState("");
-  const [sortOrder, setSortOrder] = useState("latest"); // ⬅️ 정렬 상태 (latest | oldest)
+  const [sortOrder, setSortOrder] = useState("latest");
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
     let list = entries;
 
-    // 검색 필터
     if (q) {
       list = list.filter((e) => {
         const title = (e?.title || "").toLowerCase();
@@ -30,7 +29,6 @@ const DiaryList = ({
       });
     }
 
-    // 정렬 적용
     list = [...list].sort((a, b) => {
       const da = new Date(a.date);
       const db = new Date(b.date);
@@ -55,7 +53,7 @@ const DiaryList = ({
             value={query}
             onChange={(e) => setQuery(e.target.value)}
           />
-          {/* 정렬 드롭다운 */}
+
           <select
             value={sortOrder}
             onChange={(e) => setSortOrder(e.target.value)}
@@ -73,8 +71,8 @@ const DiaryList = ({
         <div className="empty">해당 조건에 맞는 일지가 없습니다.</div>
       ) : (
         <ul className="cards">
-          {filtered.map((e) => {
-            const key = e.id || e._id || e.createdAt;
+          {filtered.map((e, i) => {
+            const key = e.id || e._id || `${e.date || ""}-${i}`;
             return (
               <li
                 className="card"
