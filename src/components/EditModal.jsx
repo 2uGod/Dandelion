@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef } from 'react';
 import { communityApi } from '../api/communityApi';
 
 /** 게시글 수정 폼 (모달 내부) */

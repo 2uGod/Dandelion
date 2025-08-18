@@ -1,4 +1,4 @@
-import React, { createContext, useState, useEffect, useContext, useMemo, useCallback } from 'react';
+import React, { createContext, useState, useEffect, useContext, useMemo, useCallback, useRef } from 'react';
 import { jwtDecode } from 'jwt-decode';
 import { userApi } from '../api/userApi';
 import { getProfileImageUrl } from '../utils/imageUtils';
@@ -15,33 +15,31 @@ const isExpired = (decoded) => {
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [userProfile, setUserProfile] = useState(null);
-  const [isLoadingProfile, setIsLoadingProfile] = useState(false);
+  const isLoadingRef = useRef(false);
 
   const fetchUserProfile = useCallback(async () => {
-    if (isLoadingProfile) return;
-    
-    console.log('fetchUserProfile 시작');
-    setIsLoadingProfile(true);
+    // useRef를 사용하여 로딩 상태 관리 (의존성 배열에 포함할 필요 없음)
+    if (isLoadingRef.current) return;
+
+    isLoadingRef.current = true;
+
     try {
       const token = localStorage.getItem('accessToken');
-      if (!token) {
-        console.log('토큰이 없음');
-        return;
-      }
-      
-      console.log('userApi.getCurrentUser 호출 중...');
+      if (!token) return;
+
       const response = await userApi.getCurrentUser();
-      console.log('userProfile API 응답:', response);
-      
       if (response.success) {
         const userData = response.data;
         if (userData.profileImage) {
           userData.profileImage = getProfileImageUrl(userData.profileImage);
         }
-        console.log('userProfile 설정:', userData);
+        
+        // userType을 type으로 매핑
+        if (userData.userType && !userData.type) {
+          userData.type = userData.userType;
+        }
+        
         setUserProfile(userData);
-      } else {
-        console.log('userProfile API 실패:', response);
       }
     } catch (error) {
       console.error('사용자 프로필 조회 실패:', error);
@@ -50,9 +48,9 @@ export const AuthProvider = ({ children }) => {
       }
       setUserProfile(null);
     } finally {
-      setIsLoadingProfile(false);
+      isLoadingRef.current = false;
     }
-  }, [isLoadingProfile]);
+  }, []); // useRef를 사용하므로 의존성 배열이 비어도 안전함
 
   // 앱 시작 시 로컬스토리지의 토큰 로드
   useEffect(() => {
@@ -77,10 +75,9 @@ export const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     if (user && !userProfile) {
-      console.log('userProfile 로딩 시작:', { user, userProfile });
       fetchUserProfile();
     }
-  }, [user?.sub, user?.id, fetchUserProfile]);
+  }, [user?.sub, user?.id, fetchUserProfile]); // fetchUserProfile은 useCallback으로 안정적임
 
   // (선택) 다른 탭/창과 로그인 상태 동기화
   useEffect(() => {
@@ -130,7 +127,7 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem('accessToken');
     setUser(null);
     setUserProfile(null);
-    setIsLoadingProfile(false);
+    isLoadingRef.current = false; // useRef로 로딩 상태 초기화
   };
 
   const value = useMemo(
@@ -141,4 +138,11 @@ export const AuthProvider = ({ children }) => {
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
-export const useAuth = () => useContext(AuthContext);
+// eslint-disable-next-line react-refresh/only-export-components
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
+};
