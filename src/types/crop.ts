@@ -1,11 +1,11 @@
 // src/types/crop.ts
 export type CropCreateDto = {
-  name: string;                // ex) "토마토"  (필수)
-  variety?: string;            // "방울토마토"
-  plantingDate?: string;       // "2024-03-15" 또는 ISO 문자열
-  expectedHarvestDate?: string;// "2024-08-15"
+  name: string; // ex) "토마토"  (필수)
+  variety?: string; // "방울토마토"
+  plantingDate?: string; // "2024-03-15" 또는 ISO 문자열
+  expectedHarvestDate?: string; // "2024-08-15"
   status?: "growing" | "planned" | "harvested" | string;
-  description?: string;        // 메모/설명
+  description?: string; // 메모/설명
 };
 
 // 서버 응답(201)의 핵심만 타입화 — 필요시 더 확장

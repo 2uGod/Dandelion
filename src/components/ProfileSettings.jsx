@@ -4,6 +4,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import AvatarUploader from "./AvatarUploader";
 import api from "../api/axios";
 import { useNavigate } from "react-router-dom";
+import { getProfileImageUrl, getDefaultProfileImageUrl } from "../utils/imageUtils";
 
 /** 백엔드 호스트
  *  NOTE: .env 에 VITE_API_BASE_URL 를 쓰고 있다면 그대로 두고,
@@ -12,7 +13,7 @@ import { useNavigate } from "react-router-dom";
 const BACKEND = import.meta.env.VITE_API_BASE_URL || "http://localhost:3000";
 
 /** 기본 아바타(절대 URL) */
-const DEFAULT_AVATAR = `${BACKEND}/uploads/profiles/farmer_icon.png`;
+const DEFAULT_AVATAR = getDefaultProfileImageUrl();
 
 const STORAGE_KEY = "farmunity_profile_v1";
 
@@ -135,17 +136,16 @@ export default function ProfileSettings() {
         const res = await api.get("/users/me", {
           headers: { Authorization: `Bearer ${token}` },
         });
+        
         const me = res?.data?.data || {};
-
-        // 서버 URL 보정 (+ 캐시버스터)
-        const fixedUrl = normalizeProfileImage(me.profileImage);
+        const profileImageUrl = getProfileImageUrl(me.profileImage);
 
         const next = {
           email: me.email || "",
           nickname: me.nickname ?? "",
           interests: me.interestCrops ?? "",
           avatarPreview: "",
-          avatarUrl: fixedUrl ? withCacheBust(fixedUrl) : "",
+          avatarUrl: profileImageUrl,
         };
         if (mounted) {
           setProfile(next);
@@ -314,8 +314,7 @@ export default function ProfileSettings() {
     setInterestsDirty(false);
   };
 
-  // 표시 이미지: 미리보기 > 서버 URL(보정+캐시버스터) > 기본 이미지
-  const displayAvatar = profile.avatarPreview || profile.avatarUrl || withCacheBust(DEFAULT_AVATAR);
+  const displayAvatar = profile.avatarUrl || DEFAULT_AVATAR;
 
   const anythingDirty = avatarDirty || nicknameDirty || interestsDirty;
 
@@ -330,7 +329,7 @@ export default function ProfileSettings() {
             id="avatar"
             label="프로필 이미지"
             value={displayAvatar}
-            fallback={withCacheBust(DEFAULT_AVATAR)}
+            fallback={DEFAULT_AVATAR}
             onChange={handleAvatarChange}   // { preview, file } 수신
             disabled={loading || loadingAvatar}
           />

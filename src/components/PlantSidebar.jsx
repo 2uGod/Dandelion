@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
 import PlantPopup from "./PlantPopup";
-import { getMyCrops, deleteCrop } from "../api/cropAPI";
+import { getMyCrops, deleteCrop } from "../api/cropApi";
 import "./PlantSidebar.css";
-import { FaTrash } from "react-icons/fa";
+// import { FaTrash } from "react-icons/fa6";
 
 // 응답 배열 안전 추출
 const asArray = (data) => {
@@ -128,7 +128,7 @@ const PlantSidebar = ({ selectedPlant, setSelectedPlant }) => {
                     aria-label="작물 삭제"
                     title="삭제"
                   >
-                    <FaTrash size={18} />
+                    🗑️
                   </button>
                 </div>
               </li>

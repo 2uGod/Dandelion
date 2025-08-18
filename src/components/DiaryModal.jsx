@@ -130,7 +130,7 @@ const DiaryModal = ({ open, onClose, onSave, initial, selectedPlant }) => {
                 이미지 제거
               </button>
             </div>
-            
+
           </div>
 
           <div className="hint">

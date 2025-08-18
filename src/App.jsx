@@ -1,4 +1,4 @@
-import { Routes, Route } from "react-router-dom"; 
+import { Routes, Route } from "react-router-dom";
 import Home from "./pages/Home";
 import MyPage from "./pages/MyPage";
 import Register from "./pages/Register";
@@ -12,7 +12,7 @@ import Reservation from "./pages/Reservation";
 function App() {
     return (
     <Routes>
-      <Route path = "/" element = {<Home/>}/> 
+      <Route path = "/" element = {<Home/>}/>
       <Route path = "/MyPage" element = {<MyPage/>}/>
       <Route path = "/Register" element = {<Register/>}/>
       <Route path = "/Login" element = {<Login/>}/>

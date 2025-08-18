@@ -11,7 +11,7 @@
     box-shadow: 0 2px 10px rgba(0,0,0,.06);
     overflow: hidden;
   }
-  
+
   /* 좌측 현재 정보 */
   .wb-left {
     flex: 0 0 auto;
@@ -23,29 +23,29 @@
     padding-right: 8px;
     border-right: 1px solid rgba(0,0,0,.06);
   }
-  
+
   .wb-temp {
     font-size: 42px;
     font-weight: 700;
     line-height: 1;
   }
-  
+
   .wb-meta {
     display: flex;
     flex-direction: column;
     gap: 4px;
   }
-  
+
   .wb-date {
     font-size: 14px;
     color: #111827;
   }
-  
+
   .wb-loc {
     font-size: 13px;
     color: #6b7280;
   }
-  
+
   /* 트랙 */
   .wb-track {
     position: relative;
@@ -55,7 +55,7 @@
     scrollbar-width: thin;
     -webkit-overflow-scrolling: touch;
   }
-  
+
   .wb-track::-webkit-scrollbar {
     height: 8px;
   }
@@ -67,7 +67,7 @@
     background: rgba(0,0,0,.05);
     border-radius: 999px;
   }
-  
+
   /* 내부 가로 플렉스 */
   .wb-inner {
     display: flex;
@@ -77,7 +77,7 @@
     position: relative;
     padding-bottom: 6px; /* 스크롤바와 라벨 간 여백 */
   }
-  
+
   /* 각 칼럼 */
   .wb-col {
     flex: 0 0 auto;     /* 가로폭 고정 (JS에서 width 지정) */
@@ -85,14 +85,14 @@
     flex-direction: column; /* 위: 그래프 / 아래: 라벨 */
     align-items: center;
   }
-  
+
   /* 그래프 전용 영역 */
   .wb-graph {
     position: relative;
     width: 100%;
     /* height는 JSX에서 스타일로 내려줍니다 (GRAPH_H) */
   }
-  
+
   /* 점(도트) */
   .wb-dot {
     position: absolute;
@@ -101,7 +101,7 @@
     border-radius: 50%;
     mix-blend-mode: normal;
   }
-  
+
   /* 라벨 전용 영역 */
   .wb-labels {
     height: 40px; /* 라벨 고정 영역 */
@@ -111,19 +111,19 @@
     justify-content: center;
     gap: 4px;
   }
-  
+
   .wb-val {
     font-size: 12px;
     line-height: 1;
     color: #111827;
   }
-  
+
   .wb-time {
     font-size: 11px;
     line-height: 1;
     color: #6b7280;
   }
-  
+
   /* 3시간 간격만 강조 */
   .wb-col:not(.label) .wb-val {
     opacity: 0.55;
@@ -131,12 +131,12 @@
   .wb-col:not(.label) .wb-time {
     opacity: 0.35;
   }
-  
+
   /* 스켈레톤 로딩 */
   .wb-skeleton {
     background: #f9fafb;
   }
-  
+
   .wb-temp-skel {
     width: 72px;
     height: 36px;
@@ -145,7 +145,7 @@
     background-size: 200% 100%;
     animation: wb-shimmer 1.4s ease-in-out infinite;
   }
-  
+
   .wb-meta-skel {
     width: 120px;
     height: 14px;
@@ -155,7 +155,7 @@
     background-size: 200% 100%;
     animation: wb-shimmer 1.4s ease-in-out infinite;
   }
-  
+
   .wb-track-skel {
     flex: 1 1 auto;
     height: 160px;
@@ -179,10 +179,9 @@
     box-shadow: 0 2px 10px rgba(0,0,0,.06);
     overflow: hidden;
   }
-  
-  
+
+
   @keyframes wb-shimmer {
     0% { background-position: 0% 50%;}
     100% { background-position: 200% 50%;}
   }
-  
