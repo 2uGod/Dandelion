@@ -281,6 +281,7 @@ const Reservation = () => {
                                 const reservationInfo = JSON.parse(r.post.content);
                                 scheduledDate = reservationInfo.scheduledDate;
                               } catch (e) {
+                                console.log(e);
                                 // JSON 파싱 실패시 기본값 사용
                               }
                             }
@@ -343,6 +344,7 @@ const Reservation = () => {
                                 const reservationInfo = JSON.parse(r.post.content);
                                 scheduledDate = reservationInfo.scheduledDate;
                               } catch (e) {
+                                console.log(e);
                                 // JSON 파싱 실패시 기본값 사용
                               }
                             }
