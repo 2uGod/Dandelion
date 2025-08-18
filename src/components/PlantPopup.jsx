@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import "./PlantPopup.css";
-import { createCrop } from "../api/cropAPI";
+import { createCrop } from "../api/cropApi";
 
 const PlantPopup = ({ onClose, onAdded }) => {
   const [name, setName] = useState("");

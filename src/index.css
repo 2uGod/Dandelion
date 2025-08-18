@@ -1,12 +1,68 @@
 /* ✅ index.css (라이트 모드 고정) */
+
+/* CSS 변수 정의 */
+:root {
+  /* 색상 팔레트 */
+  --color-primary: #047857;
+  --color-primary-light: #e7f5ef;
+  --color-success: #10b981;
+  --color-error: #dc2626;
+  --color-warning: #f59e0b;
+  --color-info: #3b82f6;
+  
+  /* 텍스트 색상 */
+  --color-text-primary: #1f2937;
+  --color-text-secondary: #6b7280;
+  --color-text-muted: #9ca3af;
+  
+  /* 배경 색상 */
+  --color-bg-primary: #ffffff;
+  --color-bg-secondary: #f9fafb;
+  --color-bg-tertiary: #f3f4f6;
+  
+  /* 보더 색상 */
+  --color-border: #e5e7eb;
+  --color-border-light: #f3f4f6;
+  --color-border-dark: #d1d5db;
+  
+  /* 그림자 */
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.04);
+  --shadow-md: 0 4px 10px rgba(0,0,0,0.06);
+  --shadow-lg: 0 8px 24px rgba(0,0,0,0.1);
+  
+  /* 보더 라디우스 */
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 10px;
+  
+  /* 간격 */
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 12px;
+  --spacing-lg: 16px;
+  --spacing-xl: 24px;
+  
+  /* 폰트 크기 */
+  --font-xs: 12px;
+  --font-sm: 14px;
+  --font-md: 16px;
+  --font-lg: 18px;
+  --font-xl: 24px;
+  
+  /* 트랜지션 */
+  --transition-fast: 0.15s ease;
+  --transition-normal: 0.2s ease;
+  --transition-slow: 0.3s ease;
+}
+
 html, body {
   margin: 0;
   padding: 0;
   width: 100%;
   height: 100%;
   font-family: "Noto Sans KR", sans-serif;
-  background-color: #ffffff;  /* 고정된 흰 배경 */
-  color: #000000;             /* 고정된 글자 색 */
+  background-color: var(--color-bg-primary);
+  color: var(--color-text-primary);
   box-sizing: border-box;
 }
 

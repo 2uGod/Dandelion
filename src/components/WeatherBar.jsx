@@ -41,7 +41,9 @@ export default function WeatherBar({ lat, lon }) {
             })
           );
           coords = { latitude: p.coords.latitude, longitude: p.coords.longitude, label: "내 위치" };
-        } catch {}
+        } catch {
+          console.error("Geolocation error");
+        }
       }
       if (!coords) coords = { latitude: 37.4201, longitude: 127.1269, label: "성남시" };
 
@@ -79,6 +81,7 @@ export default function WeatherBar({ lat, lon }) {
 
         setData({ location: coords.label, items });
       } catch (e) {
+        console.error("날씨 데이터 로딩 실패:", e);
         // 더미: 현재 시각부터 24시간
         const now = new Date();
         const items = Array.from({ length: 24 }).map((_, i) => {

@@ -1,5 +1,8 @@
-import React, { createContext, useState, useEffect, useContext, useMemo } from 'react';
+import React, { createContext, useState, useEffect, useContext, useMemo, useCallback } from 'react';
 import { jwtDecode } from 'jwt-decode';
+import { userApi } from '../api/userApi';
+import { getProfileImageUrl } from '../utils/imageUtils';
+
 
 const AuthContext = createContext(null);
 
@@ -11,6 +14,45 @@ const isExpired = (decoded) => {
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
+  const [userProfile, setUserProfile] = useState(null);
+  const [isLoadingProfile, setIsLoadingProfile] = useState(false);
+
+  const fetchUserProfile = useCallback(async () => {
+    if (isLoadingProfile) return;
+    
+    console.log('fetchUserProfile 시작');
+    setIsLoadingProfile(true);
+    try {
+      const token = localStorage.getItem('accessToken');
+      if (!token) {
+        console.log('토큰이 없음');
+        return;
+      }
+      
+      console.log('userApi.getCurrentUser 호출 중...');
+      const response = await userApi.getCurrentUser();
+      console.log('userProfile API 응답:', response);
+      
+      if (response.success) {
+        const userData = response.data;
+        if (userData.profileImage) {
+          userData.profileImage = getProfileImageUrl(userData.profileImage);
+        }
+        console.log('userProfile 설정:', userData);
+        setUserProfile(userData);
+      } else {
+        console.log('userProfile API 실패:', response);
+      }
+    } catch (error) {
+      console.error('사용자 프로필 조회 실패:', error);
+      if (error.message?.includes('CORS') || error.code === 'ERR_NETWORK') {
+        return;
+      }
+      setUserProfile(null);
+    } finally {
+      setIsLoadingProfile(false);
+    }
+  }, [isLoadingProfile]);
 
   // 앱 시작 시 로컬스토리지의 토큰 로드
   useEffect(() => {
@@ -29,8 +71,16 @@ export const AuthProvider = ({ children }) => {
       console.error('저장된 토큰이 유효하지 않습니다:', e);
       localStorage.removeItem('accessToken');
       setUser(null);
+      setUserProfile(null);
     }
   }, []);
+
+  useEffect(() => {
+    if (user && !userProfile) {
+      console.log('userProfile 로딩 시작:', { user, userProfile });
+      fetchUserProfile();
+    }
+  }, [user?.sub, user?.id, fetchUserProfile]);
 
   // (선택) 다른 탭/창과 로그인 상태 동기화
   useEffect(() => {
@@ -39,6 +89,7 @@ export const AuthProvider = ({ children }) => {
       const token = e.newValue;
       if (!token) {
         setUser(null);
+        setUserProfile(null);
         return;
       }
       try {
@@ -46,6 +97,7 @@ export const AuthProvider = ({ children }) => {
         setUser(isExpired(decoded) ? null : decoded);
       } catch {
         setUser(null);
+        setUserProfile(null);
       }
     };
     window.addEventListener('storage', onStorage);
@@ -69,6 +121,7 @@ export const AuthProvider = ({ children }) => {
       console.error('토큰 디코드 실패:', e);
       localStorage.removeItem('accessToken');
       setUser(null);
+      setUserProfile(null);
       throw e;
     }
   };
@@ -76,11 +129,13 @@ export const AuthProvider = ({ children }) => {
   const logout = () => {
     localStorage.removeItem('accessToken');
     setUser(null);
+    setUserProfile(null);
+    setIsLoadingProfile(false);
   };
 
   const value = useMemo(
-    () => ({ user, isLoggedIn: !!user, login, logout }),
-    [user]
+    () => ({ user, userProfile, isLoggedIn: !!user, login, logout }),
+    [user, userProfile]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
