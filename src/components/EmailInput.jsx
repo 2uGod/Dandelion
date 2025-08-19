@@ -1,14 +1,25 @@
 // src/components/settings/EmailInput.jsx
 import React, { useEffect, useState } from "react";
-import "./EmailInput.css"
-const COMMON = ["gmail.com", "naver.com", "daum.net", "kakao.com", "icloud.com", "직접 입력"];
+import "./EmailInput.css";
+const COMMON = [
+  "gmail.com",
+  "naver.com",
+  "daum.net",
+  "kakao.com",
+  "icloud.com",
+  "직접 입력",
+];
 
 export default function EmailInput({ local, domain, onChange }) {
   const [localPart, setLocalPart] = useState(local || "");
   const [domainPart, setDomainPart] = useState(domain || "");
-  const [mode, setMode] = useState(COMMON.includes(domain || "") ? domain : "직접 입력");
+  const [mode, setMode] = useState(
+    COMMON.includes(domain || "") ? domain : "직접 입력"
+  );
 
-  useEffect(() => { onChange?.(localPart.trim(), domainPart.trim()); }, [localPart, domainPart]);
+  useEffect(() => {
+    onChange?.(localPart.trim(), domainPart.trim());
+  }, [localPart, domainPart]);
 
   const onSelect = (e) => {
     const v = e.target.value;
@@ -37,7 +48,11 @@ export default function EmailInput({ local, domain, onChange }) {
         <input className="settings-input" value={domainPart} readOnly />
       )}
       <select className="settings-select" value={mode} onChange={onSelect}>
-        {COMMON.map((d) => <option key={d} value={d}>{d}</option>)}
+        {COMMON.map((d) => (
+          <option key={d} value={d}>
+            {d}
+          </option>
+        ))}
       </select>
     </div>
   );

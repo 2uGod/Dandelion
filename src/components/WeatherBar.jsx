@@ -6,11 +6,14 @@ import "./WeatherBar.css";
 const COL_W = 56;
 
 // 온도 컬러
-const TEMP_COLORS = (t) => (t >= 30 ? "#C81E1E" : t >= 28 ? "#F97316" : "#F59E0B");
+const TEMP_COLORS = (t) =>
+  t >= 30 ? "#C81E1E" : t >= 28 ? "#F97316" : "#F59E0B";
 
 // 날짜/시간 포맷
 const fmtDay = (d) =>
-  `${d.getMonth() + 1}월 ${d.getDate()}일 ${["일","월","화","수","목","금","토"][d.getDay()]}요일`;
+  `${d.getMonth() + 1}월 ${d.getDate()}일 ${
+    ["일", "월", "화", "수", "목", "금", "토"][d.getDay()]
+  }요일`;
 
 function fmtHour(d) {
   const h = d.getHours();
@@ -40,10 +43,15 @@ export default function WeatherBar({ lat, lon }) {
               timeout: 6000,
             })
           );
-          coords = { latitude: p.coords.latitude, longitude: p.coords.longitude, label: "내 위치" };
+          coords = {
+            latitude: p.coords.latitude,
+            longitude: p.coords.longitude,
+            label: "내 위치",
+          };
         } catch {}
       }
-      if (!coords) coords = { latitude: 37.4201, longitude: 127.1269, label: "성남시" };
+      if (!coords)
+        coords = { latitude: 37.4201, longitude: 127.1269, label: "성남시" };
 
       try {
         const url =
@@ -68,13 +76,19 @@ export default function WeatherBar({ lat, lon }) {
         for (let i = 0; i < 24; i++) {
           const idx = startIdx + i;
           if (idx >= hours.length) break;
-          items.push({ time: new Date(hours[idx]), temp: Math.round(temps[idx]) });
+          items.push({
+            time: new Date(hours[idx]),
+            temp: Math.round(temps[idx]),
+          });
         }
 
         // 혹시 24개가 안 찼으면, 앞에서 보충
         while (items.length < 24 && startIdx - 1 >= 0) {
           startIdx -= 1;
-          items.unshift({ time: new Date(hours[startIdx]), temp: Math.round(temps[startIdx]) });
+          items.unshift({
+            time: new Date(hours[startIdx]),
+            temp: Math.round(temps[startIdx]),
+          });
         }
 
         setData({ location: coords.label, items });
@@ -99,7 +113,10 @@ export default function WeatherBar({ lat, lon }) {
   useEffect(() => {
     if (!data?.items?.length || !trackRef.current) return;
     const now = new Date();
-    const idx = Math.max(0, data.items.findIndex((it) => it.time >= now));
+    const idx = Math.max(
+      0,
+      data.items.findIndex((it) => it.time >= now)
+    );
     const left = Math.max(0, COL_W * (idx - 2));
     if (typeof trackRef.current.scrollTo === "function") {
       trackRef.current.scrollTo({ left, behavior: "smooth" });
@@ -121,8 +138,8 @@ export default function WeatherBar({ lat, lon }) {
     if (max === min) return 0.5;
     const span = Math.max(max - avg, avg - min) || 1;
     const norm = (t - avg) / (2 * span); // -0.5 ~ 0.5
-    const y = 0.5 + norm;                // 평균보다 높으면 0.5↑
-    return Math.min(1, Math.max(0, y));  // [0,1] 클램프
+    const y = 0.5 + norm; // 평균보다 높으면 0.5↑
+    return Math.min(1, Math.max(0, y)); // [0,1] 클램프
   };
 
   // 로딩 상태
@@ -140,7 +157,9 @@ export default function WeatherBar({ lat, lon }) {
   if (!data) return null;
 
   // 현재 온도(첫 아이템 기준)
-  const nowTemp = Math.round((data.items && data.items[0] && data.items[0].temp) || 0);
+  const nowTemp = Math.round(
+    (data.items && data.items[0] && data.items[0].temp) || 0
+  );
 
   // 그래프 영역 높이와 패딩(점 위치 계산과 CSS를 일치시킵니다)
   const GRAPH_H = 120;
@@ -165,7 +184,11 @@ export default function WeatherBar({ lat, lon }) {
             const top = GRAPH_TOP_PAD + (1 - y) * GRAPH_EFFECTIVE_H; // 그래프 영역 내부 Y
             const showLabel = it.time.getHours() % 3 === 0; // 3시간 간격 라벨만 강조
             return (
-              <div key={i} className={`wb-col ${showLabel ? "label" : ""}`} style={{ width: COL_W }}>
+              <div
+                key={i}
+                className={`wb-col ${showLabel ? "label" : ""}`}
+                style={{ width: COL_W }}
+              >
                 {/* 그래프 전용 칸 */}
                 <div className="wb-graph" style={{ height: GRAPH_H }}>
                   <div

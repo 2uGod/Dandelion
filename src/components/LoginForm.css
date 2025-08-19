@@ -1,130 +1,119 @@
-/* 🌿 로그인 전체 영역 */
 .login-wrapper {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    padding: 60px 20px;
-    background-color: #f4f4f4;
-    min-height: calc(100vh - 80px); /* 헤더 높이 고려 */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 60px 20px;
+  background-color: #f4f4f4;
+  min-height: calc(100vh - 80px); /* 헤더 높이 고려 */
+}
+
+.login-box {
+  background-color: #ffffff;
+  padding: 40px;
+  border-radius: 20px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+  width: 100%;
+  max-width: 400px;
+  text-align: center;
+  animation: fadeIn 0.4s ease-in-out;
+}
+
+.login-title {
+  font-size: 20px;
+  font-weight: bold;
+  color: #111;
+  margin-bottom: 6px;
+}
+
+.login-sub {
+  font-size: 14px;
+  color: #666;
+  margin-bottom: 24px;
+}
+
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  text-align: left;
+}
+
+.login-form input[type="email"],
+.login-form input[type="password"] {
+  padding: 12px 14px;
+  font-size: 14px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  background-color: #fafafa;
+  transition: 0.2s;
+}
+
+.login-form input:focus {
+  outline: none;
+  border-color: #047857;
+  background-color: #fff;
+  box-shadow: 0 0 0 2px rgba(4, 120, 87, 0.1);
+}
+
+.checkbox-row {
+  display: flex;
+  align-items: center;
+  font-size: 13px;
+  color: #333;
+}
+
+.login-button {
+  background-color: #047857;
+  color: white;
+  border: none;
+  padding: 12px;
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  border-radius: 6px;
+  transition: 0.2s;
+}
+
+.login-button:hover {
+  background-color: #065f46;
+}
+
+.register-link-wrapper {
+  margin-top: 24px;
+  text-align: center;
+  animation: fadeIn 0.5s ease-in-out 0.1s both;
+}
+
+.register-link-wrapper p {
+  font-size: 13px;
+  color: #666;
+  margin-bottom: 8px;
+}
+
+.register-button {
+  background-color: transparent;
+  color: #047857;
+  border: 1px solid #047857;
+  padding: 8px 16px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  border-radius: 6px;
+  transition: 0.2s;
+}
+
+.register-button:hover {
+  background-color: #047857;
+  color: white;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
   }
-  
-  /* 🌿 흰색 박스 */
-  .login-box {
-    background-color: #ffffff;
-    padding: 40px;
-    border-radius: 20px;
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
-    width: 100%;
-    max-width: 400px;
-    text-align: center;
-    animation: fadeIn 0.4s ease-in-out;
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
-  
-  /* 🌿 타이틀 */
-  .login-title {
-    font-size: 20px;
-    font-weight: bold;
-    color: #111;
-    margin-bottom: 6px;
-  }
-  
-  /* 🌿 부제목 */
-  .login-sub {
-    font-size: 14px;
-    color: #666;
-    margin-bottom: 24px;
-  }
-  
-  /* 🌿 입력 폼 */
-  .login-form {
-    display: flex;
-    flex-direction: column;
-    gap: 18px;
-    text-align: left;
-  }
-  
-  /* 🌿 인풋 필드 */
-  .login-form input[type="email"],
-  .login-form input[type="password"] {
-    padding: 12px 14px;
-    font-size: 14px;
-    border: 1px solid #ddd;
-    border-radius: 6px;
-    background-color: #fafafa;
-    transition: 0.2s;
-  }
-  
-  .login-form input:focus {
-    outline: none;
-    border-color: #047857;
-    background-color: #fff;
-    box-shadow: 0 0 0 2px rgba(4, 120, 87, 0.1);
-  }
-  
-  /* 🌿 체크박스 */
-  .checkbox-row {
-    display: flex;
-    align-items: center;
-    font-size: 13px;
-    color: #333;
-  }
-  
-  /* 🌿 로그인 버튼 */
-  .login-button {
-    background-color: #047857;
-    color: white;
-    border: none;
-    padding: 12px;
-    font-size: 16px;
-    font-weight: 500;
-    cursor: pointer;
-    border-radius: 6px;
-    transition: 0.2s;
-  }
-  
-  .login-button:hover {
-    background-color: #065f46;
-  }
-  
-  /* 🌿 회원가입 영역 */
-  .register-link-wrapper {
-    margin-top: 24px;
-    text-align: center;
-    animation: fadeIn 0.5s ease-in-out 0.1s both;
-  }
-  
-  .register-link-wrapper p {
-    font-size: 13px;
-    color: #666;
-    margin-bottom: 8px;
-  }
-  
-  .register-button {
-    background-color: transparent;
-    color: #047857;
-    border: 1px solid #047857;
-    padding: 8px 16px;
-    font-size: 14px;
-    font-weight: 500;
-    cursor: pointer;
-    border-radius: 6px;
-    transition: 0.2s;
-  }
-  
-  .register-button:hover {
-    background-color: #047857;
-    color: white;
-  }
-  
-  /* ✨ 부드러운 진입 애니메이션 */
-  @keyframes fadeIn {
-    from {
-      opacity: 0;
-      transform: translateY(8px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-  
+}

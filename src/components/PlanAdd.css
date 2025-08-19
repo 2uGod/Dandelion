@@ -1,0 +1,106 @@
+/* src/components/PlanAdd.css */
+.planadd-wrapper {
+  background: #fff;
+  padding: 24px;
+  border-radius: 14px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.planadd-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.planadd-form input {
+  padding: 10px 12px;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  font-size: 14px;
+}
+
+.planadd-form button {
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: #047857;
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+}
+.planadd-form button:hover {
+  background: #036947;
+}
+
+.hint {
+  margin-top: 12px;
+  font-size: 14px;
+  color: #6b7280;
+}
+
+.color-picker {
+  margin-top: 8px;
+  padding: 12px;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  background: #fafafa;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.color-picker-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.color-picker-label {
+  font-size: 14px;
+  color: #374151;
+  width: 40px;
+}
+
+.color-input {
+  width: 42px;
+  height: 32px;
+  padding: 0;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  background: #fff;
+}
+
+.color-reset-btn {
+  padding: 6px 10px;
+  font-size: 13px;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  background: #fff;
+  cursor: pointer;
+}
+.color-reset-btn:hover {
+  background: #f3f4f6;
+}
+
+.color-swatches {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.swatch {
+  width: 26px;
+  height: 26px;
+  border-radius: 999px;
+  border: 2px solid #fff;
+  box-shadow: 0 0 0 1px rgba(0,0,0,0.1);
+  cursor: pointer;
+}
+.swatch.active {
+  outline: 2px solid #111827;
+  outline-offset: 1px;
+}
+
+.swatch {
+  cursor: pointer;
+}

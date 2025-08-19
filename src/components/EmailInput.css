@@ -1,5 +1,28 @@
-.email-row{display:flex;align-items:center;gap:8px;}
-.email-row .at{color:#6b7280;}
+.email-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.email-row .at {
+  color: #6b7280;
+}
 /* support both generic input/select and settings-* classes */
-.email-row input,.email-row .settings-input{border:1px solid #d1d5db;border-radius:8px;padding:10px 12px;background:#fff;font-size:14px;color:#111;min-width:0;}
-.email-row select,.email-row .settings-select{border:1px solid #d1d5db;border-radius:8px;padding:9px 10px;background:#fff;font-size:14px;color:#111;}
+.email-row input,
+.email-row .settings-input {
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  padding: 10px 12px;
+  background: #fff;
+  font-size: 14px;
+  color: #111;
+  min-width: 0;
+}
+.email-row select,
+.email-row .settings-select {
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  padding: 9px 10px;
+  background: #fff;
+  font-size: 14px;
+  color: #111;
+}

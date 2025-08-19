@@ -9,7 +9,7 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  padding: 60px 20px;  /* 여백 넉넉히 */
+  padding: 60px 20px; /* 여백 넉넉히 */
 }
 
 /* ✅ 폼 박스 */
@@ -83,8 +83,6 @@ button.submit-button:hover {
 .radio-row input[type="radio"] {
   margin-right: 6px;
 }
-
-
 
 @keyframes fadeIn {
   from {

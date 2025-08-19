@@ -3,15 +3,24 @@ import "./Header.css";
 import React from "react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+// (선택) 서버 로그아웃 API가 있다면 사용
+// import api from "../api/axios";
 
 const Header = () => {
-  const { isLoggedIn, setIsLoggedIn } = useAuth();
+  const { isLoggedIn, logout } = useAuth(); // ✅ setIsLoggedIn 제거, logout 사용
   const navigate = useNavigate();
 
-  const handleLogout = () => {
-    setIsLoggedIn(false); // ← 로그아웃 시 false 로!
-    alert("로그아웃 되었습니다.");
-    navigate("/");
+  const handleLogout = async () => {
+    try {
+      // (선택) 쿠키 기반 인증이라면 서버에 로그아웃 요청 먼저
+      // await api.post("/auth/logout");
+      logout(); // ✅ 토큰 삭제 + user=null
+      alert("로그아웃 되었습니다.");
+      navigate("/login"); // ✅ 로그인 페이지로 이동 권장
+    } catch (e) {
+      console.error(e);
+      alert("로그아웃 중 오류가 발생했습니다.");
+    }
   };
 
   return (
@@ -53,11 +62,13 @@ const Header = () => {
 
       <div className="header-right">
         {isLoggedIn ? (
-          <button className="logout-button" onClick={handleLogout}>
+          <button className="logout-btn" onClick={handleLogout}>
             로그아웃
           </button>
         ) : (
-          <Link to="/Login" className="login-area">
+          <Link to="/login" className="login-area">
+            {" "}
+            {/* 소문자 권장 */}
             <span role="img" aria-label="login">
               👤
             </span>

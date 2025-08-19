@@ -1,6 +1,6 @@
 // src/components/DiaryForm.jsx
 import React, { useState, useEffect } from "react";
-import "./DiaryForm.css"
+import "./DiaryForm.css";
 
 const STORAGE_KEY = "farmunity_diary_entries";
 
@@ -24,7 +24,9 @@ const DiaryForm = ({ selectedPlant, editingEntry, setEditingEntry }) => {
 
     if (editingEntry) {
       entries = entries.map((e) =>
-        e.id === editingEntry.id ? { ...e, title, content, date, plant: selectedPlant } : e
+        e.id === editingEntry.id
+          ? { ...e, title, content, date, plant: selectedPlant }
+          : e
       );
     } else {
       entries.push({
@@ -45,7 +47,11 @@ const DiaryForm = ({ selectedPlant, editingEntry, setEditingEntry }) => {
 
   return (
     <div className="diary-form">
-      <input type="date" value={date} onChange={(e) => setDate(e.target.value)} />
+      <input
+        type="date"
+        value={date}
+        onChange={(e) => setDate(e.target.value)}
+      />
       <input
         type="text"
         placeholder="제목"
@@ -58,7 +64,9 @@ const DiaryForm = ({ selectedPlant, editingEntry, setEditingEntry }) => {
         onChange={(e) => setContent(e.target.value)}
       />
       <button onClick={saveEntry}>{editingEntry ? "수정" : "저장"}</button>
-      {editingEntry && <button onClick={() => setEditingEntry(null)}>취소</button>}
+      {editingEntry && (
+        <button onClick={() => setEditingEntry(null)}>취소</button>
+      )}
     </div>
   );
 };
