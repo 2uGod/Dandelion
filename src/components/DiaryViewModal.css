@@ -84,26 +84,38 @@
   display: flex;
   justify-content: flex-end;
   gap: 8px;
-  padding: 12px 16px;
+  padding: 16px 20px;
   border-top: 1px solid #eef2f7;
   background: #fafafa;
 }
 .dv-btn {
-  padding: 8px 12px;
-  border-radius: 8px;
-  border: 1px solid #e5e7eb;
-  background: #fff;
+  padding: 8px 16px;
+  border-radius: 20px;
+  border: none;
   cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  min-width: 70px;
 }
-.dv-btn:hover { background: #f3f4f6; }
+.dv-btn:hover { 
+  transform: translateY(-1px);
+}
 .dv-btn.primary {
   background: #047857;
-  border-color: #047857;
   color: #fff;
+  box-shadow: 0 2px 4px rgba(4, 120, 87, 0.2);
 }
-.dv-btn.primary:hover { background: #036947; }
+.dv-btn.primary:hover { 
+  background: #065f46;
+  box-shadow: 0 4px 8px rgba(4, 120, 87, 0.3);
+}
 .dv-btn.danger {
-  background: #fee2e2;
-  border-color: #fca5a5;
-  color: #991b1b;
+  background: #ff6b6b;
+  color: #fff;
+  box-shadow: 0 2px 4px rgba(255, 107, 107, 0.2);
+}
+.dv-btn.danger:hover {
+  background: #ff5252;
+  box-shadow: 0 4px 8px rgba(255, 107, 107, 0.3);
 }
