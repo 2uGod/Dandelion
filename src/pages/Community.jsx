@@ -1,69 +1,12 @@
+// src/pages/Community.jsx
 import React, { useMemo, useState, useRef, useEffect } from "react";
 import { createPortal } from "react-dom";
 import Header from "../components/Header";
 import "../styles/Community.css";
 import { Link } from "react-router-dom";
+import { fetchPosts, createPost } from "../services/postApi";
 
 const GREEN = "#047857";
-
-export const DUMMY_POSTS = [
-  {
-    id: 1,
-    type: "질문",
-    title: "토마토에는 어떤 비료가 어울리나요?",
-    content: "방울토마토 키우려는데 기비/추비 추천 부탁드려요!",
-    author: "이웃농부",
-    crop: "토마토",
-    createdAt: "2025-08-06T09:10:00Z",
-    likes: 12,
-    replies: 5,
-    icon: "🍅",
-    tags: ["비료", "초보", "토마토"],
-    images: []
-  },
-  {
-    id: 2,
-    type: "일지",
-    title: "고추 생육 점검 (7/25)",
-    content: "잎색 진해짐, 웃자람 방지 위해 전정 진행.",
-    author: "열정농부",
-    crop: "고추",
-    createdAt: "2025-07-25T12:00:00Z",
-    likes: 7,
-    replies: 2,
-    icon: "🌶️",
-    tags: ["생육일지", "전정", "고추"],
-    images: []
-  },
-  {
-    id: 3,
-    type: "노하우",
-    title: "딸기 러너 정리 팁",
-    content: "러너는 이 시기에 정리해야 뿌리 활착 좋아요.",
-    author: "베리굿",
-    crop: "딸기",
-    createdAt: "2025-08-08T03:40:00Z",
-    likes: 29,
-    replies: 9,
-    icon: "🍓",
-    tags: ["러너", "정식", "딸기"],
-    images: []
-  },
-  {
-    id: 4,
-    type: "질문",
-    title: "배추 모종에 작은 벌레… 방제 뭘로 갈까요?",
-    content: "잎에 구멍, 똥 흔적 보임. 약제 추천 좀…",
-    author: "새싹",
-    crop: "배추",
-    createdAt: "2025-08-09T22:10:00Z",
-    likes: 3,
-    replies: 4,
-    icon: "🥬",
-    tags: ["해충", "약제", "배추"],
-    images: []
-  },
-];
 
 const HOT_KEYWORDS = [
   "기비/추비","관수 주기","러너","병해 사진판독","하우스 환기","탄저병","방제 캘린더",
@@ -92,6 +35,7 @@ const PostCard = ({ p }) => (
       {!!(p.images && p.images.length) && (
         <div className="thumb-grid">
           {p.images.slice(0,4).map((src, i) => (
+            // 서버가 이미지 URL을 준다고 가정 (상대경로면 baseURL과 합쳐 표시)
             <img key={i} src={src} alt="" className="thumb" />
           ))}
           {p.images.length > 4 && (
@@ -110,26 +54,27 @@ const PostCard = ({ p }) => (
       </footer>
 
       <div className="tag-wrap">
-        {p.tags.map(t => <span key={t} className="tag">#{t}</span>)}
+        {p.tags?.map(t => <span key={t} className="tag">#{t}</span>)}
       </div>
     </div>
   </Link>
 );
 
-/** 질문/노하우 작성 폼 (모달 내부) */
-const ComposeForm = ({ onSubmit, onClose }) => {
+/** 작성 폼 (모달 내부) */
+const ComposeForm = ({ onSubmit, onClose, loading }) => {
   const [postType, setPostType] = useState("질문"); // 질문 | 노하우
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [images, setImages] = useState([]);
   const [files, setFiles] = useState([]);
+  const [tagInput, setTagInput] = useState("");
+  const [tags, setTags] = useState([]);
   const fileInputRef = useRef(null);
 
   const onPickFiles = (e) => {
     const picked = Array.from(e.target.files || []);
     const next = [...files, ...picked].slice(0, 6); // 최대 6장 누적
     setFiles(next);
-    // 새로 추가된 파일만 미리보기 생성
     const newly = next.slice(images.length);
     const readers = newly.map(f => new Promise(res => {
       const r = new FileReader();
@@ -144,13 +89,23 @@ const ComposeForm = ({ onSubmit, onClose }) => {
     setFiles(prev => prev.filter((_, i) => i !== idx));
   };
 
-  const disabled = !title.trim() || !content.trim();
+  const addTag = () => {
+    const val = tagInput.trim();
+    if (!val) return;
+    if (tags.includes(val)) return;
+    setTags(prev => [...prev, val]);
+    setTagInput("");
+  };
+
+  const removeTag = (t) => setTags(prev => prev.filter(x => x !== t));
+
+  const disabled = !title.trim() || !content.trim() || loading;
 
   return (
     <div className="quick-ask">
       <h3 className="modal-title">새 글 작성</h3>
 
-      {/* 타입 선택 (일지는 제외) */}
+      {/* 타입 선택 */}
       <div className="type-toggle" role="tablist" aria-label="글 유형 선택">
         {["질문","노하우"].map(t=>(
           <button
@@ -187,6 +142,28 @@ const ComposeForm = ({ onSubmit, onClose }) => {
         onChange={(e)=>setContent(e.target.value)}
       />
 
+      {/* 태그 입력 */}
+      <div className="qa-tags">
+        <input
+          className="qa-input"
+          placeholder="태그 입력 후 Enter (예: 배추, 병해충)"
+          value={tagInput}
+          onChange={(e)=>setTagInput(e.target.value)}
+          onKeyDown={(e)=> e.key === "Enter" ? (e.preventDefault(), addTag()) : null}
+        />
+        <button type="button" className="btn-outline mini" onClick={addTag}>추가</button>
+      </div>
+      {!!tags.length && (
+        <div className="tag-wrap">
+          {tags.map(t=>(
+            <span key={t} className="tag">
+              #{t}
+              <button className="tag-x" onClick={()=>removeTag(t)} aria-label="태그 삭제">×</button>
+            </span>
+          ))}
+        </div>
+      )}
+
       <input
         ref={fileInputRef}
         type="file"
@@ -214,25 +191,22 @@ const ComposeForm = ({ onSubmit, onClose }) => {
       )}
 
       <div className="qa-actions">
-        <button className="btn-outline" type="button" onClick={onClose}>취소</button>
+        <button className="btn-outline" type="button" onClick={onClose} disabled={loading}>취소</button>
         <button
           className="btn-solid"
           type="button"
           disabled={disabled}
-          onClick={()=>{
-            onSubmit({ type: postType, title, content, images });
-            onClose();
-          }}
+          onClick={()=> onSubmit({ type: postType, title, content, tags, files })}
         >
-          등록
+          {loading ? "등록 중..." : "등록"}
         </button>
       </div>
     </div>
   );
 };
 
-/** 모달 래퍼 (✅ Portal 로 body에 렌더링) */
-const ComposeModal = ({ open, onClose, onSubmit }) => {
+/** 모달 래퍼 (Portal) */
+const ComposeModal = ({ open, onClose, onSubmit, loading }) => {
   const panelRef = useRef(null);
 
   // ESC로 닫기 + 바디 스크롤 잠금
@@ -257,7 +231,7 @@ const ComposeModal = ({ open, onClose, onSubmit }) => {
     <div className="modal-backdrop" onMouseDown={onBackdropMouseDown}>
       <div className="modal-panel" ref={panelRef} role="dialog" aria-modal="true">
         <button className="modal-close" onClick={onClose} aria-label="닫기" type="button">✕</button>
-        <ComposeForm onSubmit={onSubmit} onClose={onClose}/>
+        <ComposeForm onSubmit={onSubmit} onClose={onClose} loading={loading}/>
       </div>
     </div>,
     document.body
@@ -269,40 +243,74 @@ const Community = () => {
   const [q, setQ]   = useState("");
   const [sort, setSort] = useState("최신순");
   const [composeOpen, setComposeOpen] = useState(false);
+  const [posting, setPosting] = useState(false); // 등록 중 상태
+
+  // 서버에서 받은 게시글 목록
+  const [posts, setPosts] = useState([]);
+  const [loadingList, setLoadingList] = useState(false);
+  const [page, setPage] = useState(1);   // 필요하면 무한스크롤에 사용
+  const [total, setTotal] = useState(0);
+
+  // 검색 입력 디바운스
+  const searchTimer = useRef(null);
+  const [debouncedQ, setDebouncedQ] = useState("");
+
+  useEffect(() => {
+    if (searchTimer.current) clearTimeout(searchTimer.current);
+    searchTimer.current = setTimeout(() => setDebouncedQ(q), 300);
+    return () => searchTimer.current && clearTimeout(searchTimer.current);
+  }, [q]);
+
+  // 목록 로드: 탭/검색어 변경 시 서버에서 새로 가져오기
+  useEffect(() => {
+    const load = async () => {
+      setLoadingList(true);
+      try {
+        const { list, total } = await fetchPosts({
+          type: tab,
+          q: debouncedQ,
+          page: 1,
+          limit: 30,
+        });
+        // 서버에서 정렬이 없으면 클라에서 보조 정렬
+        let arr = list.slice();
+        if (sort === "최신순") arr.sort((a,b)=> new Date(b.createdAt) - new Date(a.createdAt));
+        if (sort === "인기순") arr.sort((a,b)=> (b.likes ?? 0) - (a.likes ?? 0));
+        if (sort === "댓글많은순") arr.sort((a,b)=> (b.replies ?? 0) - (a.replies ?? 0));
+        setPosts(arr);
+        setPage(1);
+        setTotal(total);
+      } catch (e) {
+        console.error("목록 로드 실패:", e);
+        setPosts([]); // 실패 시 빈 배열
+      } finally {
+        setLoadingList(false);
+      }
+    };
+    load();
+  }, [tab, debouncedQ, sort]);
+
+  // 글 등록
+  const handleComposeSubmit = async ({ type, title, content, tags, files }) => {
+    try {
+      setPosting(true);
+      const created = await createPost({ type, title, content, tags, files });
+      // 낙관적 반영 (서버 응답 모델을 UI로 변환해둔 상태)
+      setPosts(prev => [created, ...prev]);
+      setTab(type); // 작성한 탭으로 이동
+      setComposeOpen(false);
+    } catch (err) {
+      console.error(err);
+      alert("게시글 등록에 실패했어요. 잠시 후 다시 시도해주세요.");
+    } finally {
+      setPosting(false);
+    }
+  };
 
   const filtered = useMemo(()=>{
-    let arr = DUMMY_POSTS.slice();
-    if (tab !== "전체") arr = arr.filter(p=>p.type === tab);
-    if (q.trim()) {
-      const key = q.trim().toLowerCase();
-      arr = arr.filter(p =>
-        p.title.toLowerCase().includes(key) ||
-        p.content.toLowerCase().includes(key) ||
-        p.tags.some(t=>t.toLowerCase().includes(key))
-      );
-    }
-    if (sort === "최신순") arr.sort((a,b)=> new Date(b.createdAt) - new Date(a.createdAt));
-    if (sort === "인기순") arr.sort((a,b)=> b.likes - a.likes);
-    if (sort === "댓글많은순") arr.sort((a,b)=> b.replies - a.replies);
-    return arr;
-  }, [tab,q,sort]);
-
-  const handleComposeSubmit = ({ type, title, content, images }) => {
-    DUMMY_POSTS.unshift({
-      id: Date.now(),
-      type,                         // 질문 | 노하우
-      title, content,
-      author: "나",
-      crop: "기타",
-      createdAt: new Date().toISOString(),
-      likes: 0,
-      replies: 0,
-      icon: type === "질문" ? "❓" : "💡",
-      tags: [type],
-      images: images || []
-    });
-    setTab(type); // 작성한 탭으로 이동
-  };
+    // 서버 필터를 이미 적용했기 때문에 여기서는 추가 필터 불필요
+    return posts;
+  }, [posts]);
 
   return (
     <div className="community-wrap">
@@ -356,8 +364,9 @@ const Community = () => {
 
           {/* 리스트 */}
           <div className="post-list">
-            {filtered.map(p=> <PostCard key={p.id} p={p} />)}
-            {!filtered.length && (
+            {loadingList && <div className="empty">불러오는 중…</div>}
+            {!loadingList && filtered.map(p=> <PostCard key={p.id} p={p} />)}
+            {!loadingList && !filtered.length && (
               <div className="empty">조건에 맞는 글이 없어요.</div>
             )}
           </div>
@@ -397,6 +406,7 @@ const Community = () => {
         open={composeOpen}
         onClose={()=>setComposeOpen(false)}
         onSubmit={handleComposeSubmit}
+        loading={posting}
       />
     </div>
   );
