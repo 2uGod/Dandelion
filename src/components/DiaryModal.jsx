@@ -4,6 +4,19 @@ import "./DiaryModal.css";
 const DEFAULT_IMAGE =
   "data:image/svg+xml;utf8,%3Csvg xmlns%3D%22http%3A//www.w3.org/2000/svg%22 width%3D%22200%22 height%3D%22200%22 viewBox%3D%220 0 200 200%22%3E%3Crect width%3D%22200%22 height%3D%22200%22 rx%3D%2224%22 fill%3D%22%23e5f7ef%22/%3E%3Ctext x%3D%2250%25%22 y%3D%2255%25%22 dominant-baseline%3D%22middle%22 text-anchor%3D%22middle%22 font-size%3D%2272%22%3E%F0%9F%8C%B1%3C/text%3E%3C/svg%3E";
 
+const SWATCHES = [
+  "#16a34a",
+  "#4CAF50",
+  "#10b981",
+  "#3b82f6",
+  "#8b5cf6",
+  "#f59e0b",
+  "#f97316",
+  "#ef4444",
+  "#6b7280",
+  "#111827",
+];
+
 async function compressImage(file, maxSize = 1280, quality = 0.8) {
   const dataUrl = await new Promise((resolve, reject) => {
     const fr = new FileReader();
@@ -41,7 +54,6 @@ const DiaryModal = ({ open, onClose, onSave, initial, selectedPlant }) => {
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [type, setType] = useState("crop_diary");
-  const [cropId, setCropId] = useState("");
   const [color, setColor] = useState("");
   const [imagePreview, setImagePreview] = useState(DEFAULT_IMAGE);
   const [imageFile, setImageFile] = useState(null);
@@ -53,11 +65,6 @@ const DiaryModal = ({ open, onClose, onSave, initial, selectedPlant }) => {
       setTitle(initial.title || "");
       setContent(initial.content || "");
       setType(initial.type || "crop_diary");
-      setCropId(
-        typeof initial.cropId === "number" || typeof initial.cropId === "string"
-          ? String(initial.cropId)
-          : ""
-      );
       setColor(initial.color || "");
       setImagePreview(initial.image || DEFAULT_IMAGE);
       setImageFile(null);
@@ -66,7 +73,6 @@ const DiaryModal = ({ open, onClose, onSave, initial, selectedPlant }) => {
       setTitle("");
       setContent("");
       setType("crop_diary");
-      setCropId("");
       setColor("");
       setImagePreview(DEFAULT_IMAGE);
       setImageFile(null);
@@ -99,7 +105,6 @@ const DiaryModal = ({ open, onClose, onSave, initial, selectedPlant }) => {
       content,
       date,
       type,
-      cropId: cropId ? Number(cropId) : undefined,
       color: color || undefined,
       imageFile: imageFile || undefined,
     };
@@ -120,30 +125,50 @@ const DiaryModal = ({ open, onClose, onSave, initial, selectedPlant }) => {
               onChange={(e) => setTitle(e.target.value)}
             />
           </div>
+
           <textarea
             rows={5}
             placeholder="내용을 입력하세요"
             value={content}
             onChange={(e) => setContent(e.target.value)}
           />
-          <div className="form-row">
+
+          <div className="form-row three">
             <select value={type} onChange={(e) => setType(e.target.value)}>
               <option value="crop_diary">작물 일지</option>
               <option value="personal">개인 일정</option>
             </select>
-            <input
-              type="number"
-              placeholder="작물 ID (개인 일정은 비움)"
-              value={cropId}
-              onChange={(e) => setCropId(e.target.value)}
-            />
-            <input
-              type="text"
-              placeholder="색상 HEX (선택)"
-              value={color}
-              onChange={(e) => setColor(e.target.value)}
-            />
+
+            <div className="color-field">
+              <input
+                className="color-input"
+                type="text"
+                placeholder="색상 HEX (선택)"
+                value={color}
+                onChange={(e) => setColor(e.target.value)}
+              />
+              <input
+                className="native-color"
+                type="color"
+                value={/^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(color) ? color : "#16a34a"}
+                onChange={(e) => setColor(e.target.value)}
+              />
+            </div>
           </div>
+
+          <div className="color-swatches">
+            {SWATCHES.map((c) => (
+              <button
+                key={c}
+                type="button"
+                aria-label={c}
+                className={`swatch${color === c ? " active" : ""}`}
+                style={{ background: c }}
+                onClick={() => setColor(c)}
+              />
+            ))}
+          </div>
+
           <div className="image-uploader">
             <div className="image-box">
               <img src={imagePreview} alt="미리보기" className="image-preview" />
@@ -169,10 +194,12 @@ const DiaryModal = ({ open, onClose, onSave, initial, selectedPlant }) => {
               </button>
             </div>
           </div>
+
           <div className="hint">
             현재 선택 작물: <strong>{selectedPlant || "작물 미선택"}</strong>
           </div>
         </div>
+
         <div className="modal-actions">
           <button className="btn-ghost" onClick={onClose}>취소</button>
           <button className="btn-primary" onClick={handleSave}>
