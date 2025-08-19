@@ -1,7 +1,6 @@
 // src/components/LoginForm.jsx
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-
 import api from "../api/axios";
 import { useAuth } from "../context/AuthContext";
 import "./LoginForm.css";
@@ -54,7 +53,7 @@ const LoginForm = () => {
       }
 
       alert("로그인에 성공했습니다!");
-      navigate("/");
+      navigate("/MyPage");
     } catch (error) {
       console.warn("[LOGIN ERROR]", error);
       const msg =

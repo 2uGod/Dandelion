@@ -1,6 +1,4 @@
 // src/components/settings/AvatarUploader.jsx
-import React, { useRef } from "react";
-import "./AvatarUploader.css";
 
 /**
  * props:
@@ -17,15 +15,9 @@ export default function AvatarUploader({
   fallback = "",
   onChange,
   disabled = false,
+  inputRef, // 외부에서 ref 전달받음
 }) {
-  const inputRef = useRef(null);
   const src = value || fallback;
-
-  const handlePick = () => {
-    if (!inputRef.current || disabled) return;
-    inputRef.current.value = ""; // 같은 파일 재선택 허용
-    inputRef.current.click();
-  };
 
 
 
@@ -52,12 +44,6 @@ export default function AvatarUploader({
       <div className="avatar-box" aria-label="프로필 이미지 미리보기">
         {/* key={src} 로 이미지 노드를 강제 교체 → 즉시 리프레시 */}
         <img key={src} src={src} alt="avatar" className="avatar-img" onError={handleImgError} />
-      </div>
-
-      <div className="avatar-actions">
-        <button type="button" className="btn-link" onClick={handlePick} disabled={disabled}>
-          바꾸기
-        </button>
       </div>
 
       <input

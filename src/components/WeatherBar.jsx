@@ -42,7 +42,7 @@ export default function WeatherBar({ lat, lon }) {
           );
           coords = { latitude: p.coords.latitude, longitude: p.coords.longitude, label: "내 위치" };
         } catch {
-          console.error("Geolocation error");
+          // 위치 정보 접근 실패 시 기본 위치(성남시) 사용
         }
       }
       if (!coords) coords = { latitude: 37.4201, longitude: 127.1269, label: "성남시" };
