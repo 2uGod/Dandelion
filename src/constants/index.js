@@ -17,7 +17,7 @@ export const COLORS = {
 // 이메일 도메인 리스트
 export const EMAIL_DOMAINS = [
   'gmail.com',
-  'naver.com', 
+  'naver.com',
   'daum.net',
   'kakao.com',
   'icloud.com',
@@ -29,23 +29,27 @@ export const POST_CATEGORIES = {
   // 한국어 -> 영어
   KOREAN_TO_ENGLISH: {
     '전체': 'general',
+    '자유': 'free',
     '질문': 'question',
     '일지': 'diary',
     '노하우': 'knowhow',
+    '건의': 'suggestion',
     '예약': 'reservation' // API 호출시에만 사용
   },
   // 영어 -> 한국어
   ENGLISH_TO_KOREAN: {
     'general': '일반',
+    'free': '자유',
     'question': '질문',
     'diary': '일지',
     'knowhow': '노하우',
+    'suggestion': '건의',
     'reservation': '예약'
   }
 };
 
 // 커뮤니티 탭에서 사용할 카테고리 (예약 제외)
-export const COMMUNITY_CATEGORIES = ['전체', '질문', '일지', '노하우'];
+export const COMMUNITY_CATEGORIES = ['전체', '자유', '질문', '일지', '노하우', '건의'];
 
 // 정렬 옵션 매핑
 export const SORT_OPTIONS = {
@@ -56,7 +60,7 @@ export const SORT_OPTIONS = {
   },
   ENGLISH_TO_KOREAN: {
     'latest': '최신순',
-    'popular': '인기순', 
+    'popular': '인기순',
     'views': '댓글많은순'
   }
 };
@@ -67,6 +71,8 @@ export const CATEGORY_ICONS = {
   'diary': '📝',
   'knowhow': '💡',
   'general': '💬',
+  'free': '🗣️',
+  'suggestion': '💌',
   'reservation': '📅'
 };
 

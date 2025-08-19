@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 
 /** 질문/노하우 작성 폼 (모달 내부) */
 const ComposeForm = ({ onSubmit, onClose }) => {
-  const [postType, setPostType] = useState("질문"); // 질문 | 노하우
+  const [postType, setPostType] = useState("자유"); // 자유 | 질문 | 일지 | 노하우 | 건의
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [images, setImages] = useState([]);
@@ -79,7 +79,7 @@ const ComposeForm = ({ onSubmit, onClose }) => {
         <div className="form-section">
           <label className="form-label">카테고리</label>
           <div className="type-selector">
-            {["질문","일지","노하우"].map(t=>(
+            {["자유","질문","일지","노하우","건의"].map(t=>(
               <button
                 key={t}
                 type="button"
@@ -97,7 +97,12 @@ const ComposeForm = ({ onSubmit, onClose }) => {
           <label className="form-label">제목</label>
           <input
             className="form-input"
-            placeholder={postType==="질문" ? "제목을 입력하세요 (예: 토마토 추비 추천?)" : "제목을 입력하세요 (예: 딸기 러너 정리 팁)"}
+            placeholder={
+              postType==="질문" ? "제목을 입력하세요 (예: 토마토 추비 추천?)" :
+              postType==="자유" ? "제목을 입력하세요 (예: 농사 이야기)" :
+              postType==="건의" ? "제목을 입력하세요 (예: 기능 개선 건의)" :
+              "제목을 입력하세요 (예: 딸기 러너 정리 팁)"
+            }
             value={title}
             onChange={(e)=>setTitle(e.target.value)}
           />
@@ -109,9 +114,10 @@ const ComposeForm = ({ onSubmit, onClose }) => {
           <textarea
             className="form-textarea"
             placeholder={
-              postType==="질문"
-                ? "무엇이 궁금한가요? (병징·환경·시도한 것 등 세부 정보 환영)"
-                : "노하우를 공유해주세요. (배경/방법/팁/주의사항 등)"
+              postType==="질문" ? "무엇이 궁금한가요? (병징·환경·시도한 것 등 세부 정보 환영)" :
+              postType==="자유" ? "자유롭게 이야기를 나누어보세요!" :
+              postType==="건의" ? "개선하고 싶은 점이나 새로운 기능에 대해 자세히 설명해주세요." :
+              "노하우를 공유해주세요. (배경/방법/팁/주의사항 등)"
             }
             rows={8}
             value={content}
@@ -119,35 +125,37 @@ const ComposeForm = ({ onSubmit, onClose }) => {
           />
         </div>
 
-        {/* 태그 */}
-        <div className="form-section">
-          <label className="form-label">태그 ({tags.length}/5)</label>
-          <div className="tag-input-container">
-            <div className="tag-list">
-              {tags.map((tag, index) => (
-                <span key={index} className="tag-item">
-                  #{tag}
-                  <button
-                    type="button"
-                    className="tag-remove"
-                    onClick={() => removeTag(tag)}
-                  >
-                    ×
-                  </button>
-                </span>
-              ))}
-              <input
-                className="tag-input"
-                placeholder={tags.length === 0 ? "#태그1, #태그2 (Enter 또는 쉼표로 구분)" : ""}
-                value={tagInput}
-                onChange={handleTagInputChange}
-                onKeyDown={handleTagInputKeyDown}
-                disabled={tags.length >= 5}
-              />
+        {/* 태그 - 건의게시판에서는 숨김 */}
+        {postType !== "건의" && (
+          <div className="form-section">
+            <label className="form-label">태그 ({tags.length}/5)</label>
+            <div className="tag-input-container">
+              <div className="tag-list">
+                {tags.map((tag, index) => (
+                  <span key={index} className="tag-item">
+                    #{tag}
+                    <button
+                      type="button"
+                      className="tag-remove"
+                      onClick={() => removeTag(tag)}
+                    >
+                      ×
+                    </button>
+                  </span>
+                ))}
+                <input
+                  className="tag-input"
+                  placeholder={tags.length === 0 ? "#태그1, #태그2 (Enter 또는 쉼표로 구분)" : ""}
+                  value={tagInput}
+                  onChange={handleTagInputChange}
+                  onKeyDown={handleTagInputKeyDown}
+                  disabled={tags.length >= 5}
+                />
+              </div>
             </div>
+            <div className="form-hint">최대 5개까지 추가 가능합니다</div>
           </div>
-          <div className="form-hint">최대 5개까지 추가 가능합니다</div>
-        </div>
+        )}
 
         {/* 이미지 업로드 */}
         <div className="form-section">
@@ -199,7 +207,13 @@ const ComposeForm = ({ onSubmit, onClose }) => {
           type="button"
           disabled={disabled}
           onClick={()=>{
-            onSubmit({ type: postType, title, content, images, tags });
+            onSubmit({
+              type: postType,
+              title,
+              content,
+              images,
+              tags: postType === "건의" ? [] : tags
+            });
             onClose();
           }}
         >

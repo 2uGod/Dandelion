@@ -228,6 +228,29 @@ const MyPage = () => {
   const isFileLike = (v) =>
     v instanceof File || v instanceof Blob || (v && typeof v === "object" && typeof v.size === "number" && typeof v.type === "string");
 
+  const handleColorUpdate = async (entryId, newColor) => {
+    try {
+      const res = await fetch(`${API_BASE}/schedules/${entryId}/color`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          ...authHeader(),
+        },
+        body: JSON.stringify({ color: newColor }),
+      });
+
+      if (!res.ok) {
+        const errorText = await res.text();
+        throw new Error(`색상 변경 실패: ${res.status} - ${errorText}`);
+      }
+
+      return true;
+    } catch (error) {
+      console.error("색상 변경 중 오류:", error);
+      return false;
+    }
+  };
+
   const handleSaveDiary = async (entry, isEdit) => {
     const baseType =
       entry?.type && (entry.type === "crop_diary" || entry.type === "personal")
@@ -250,7 +273,7 @@ const MyPage = () => {
     // type 필드 제거 - 백엔드에서 기본적으로 crop_diary로 설정됨
     if (entry.content) fd.append("content", entry.content);
     if (resolvedCropId) fd.append("cropId", String(resolvedCropId));
-    if (entry.color) fd.append("color", String(entry.color));
+    // color 필드 제거 - 별도 API로 처리
     if (isFileLike(entry.imageFile)) fd.append("image", entry.imageFile);
 
     try {
@@ -275,6 +298,11 @@ const MyPage = () => {
           const t = await res.text().catch(() => "");
           throw new Error(t || "create diary failed");
         }
+      }
+      
+      // 색상이 있는 경우 별도 API 호출
+      if (entry.color && (entry.id || entry._id)) {
+        await handleColorUpdate(entry.id || entry._id, entry.color);
       }
       
       await fetchDiaries(selectedCropId || undefined);
@@ -346,7 +374,7 @@ const MyPage = () => {
     fd.append("date", newTask.date || "");
     fd.append("cropId", String(newTask.cropId || selectedCropId || ""));
     if (newTask.content) fd.append("content", newTask.content);
-    if (newTask.color) fd.append("color", newTask.color);
+    // color 필드 제거 - 별도 API로 처리
     if (newTask.imageFile) fd.append("image", newTask.imageFile);
 
     try {
@@ -359,6 +387,17 @@ const MyPage = () => {
       if (!res.ok) {
         const errorText = await res.text();
         throw new Error(`create schedule failed: ${res.status} ${res.statusText} - ${errorText}`);
+      }
+
+      // 응답 데이터 읽기
+      const responseData = await res.json();
+      
+      // 색상이 있는 경우 새로 생성된 ID를 얻어서 색상 설정
+      if (newTask.color) {
+        const newId = responseData.id || responseData.data?.id;
+        if (newId) {
+          await handleColorUpdate(newId, newTask.color);
+        }
       }
 
       await fetchSchedules(selectedCropId || undefined);
@@ -389,7 +428,7 @@ const MyPage = () => {
       if (updated.date) fd.append("date", updated.date);
       // type 필드 제거 - 백엔드에서 기본적으로 crop_diary로 설정됨
       if (updated.cropId) fd.append("cropId", String(updated.cropId));
-      if (updated.color) fd.append("color", String(updated.color));
+      // color 필드 제거 - 별도 API로 처리
       if (isFileLike(updated.imageFile)) fd.append("image", updated.imageFile);
 
       const res = await fetch(`${API_BASE}/schedules/${id}`, {
@@ -398,6 +437,11 @@ const MyPage = () => {
         body: fd,
       });
       if (!res.ok) throw new Error("update schedule failed");
+      
+      // 색상이 있는 경우 별도 API 호출
+      if (updated.color) {
+        await handleColorUpdate(id, updated.color);
+      }
       
       await fetchSchedules(selectedCropId || undefined);
       setIsTaskModalOpen(false);

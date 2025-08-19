@@ -941,3 +941,34 @@
   }
 }
 
+/* 건의게시판 안내 문구 */
+.suggestion-notice {
+  background: #fef3c7;
+  border: 1px solid #f59e0b;
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 24px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.suggestion-notice .notice-icon {
+  font-size: 32px;
+  flex-shrink: 0;
+}
+
+.suggestion-notice .notice-content h3 {
+  margin: 0 0 8px 0;
+  color: #92400e;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.suggestion-notice .notice-content p {
+  margin: 0;
+  color: #a16207;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
