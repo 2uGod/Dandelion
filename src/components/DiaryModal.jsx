@@ -1,6 +1,6 @@
-// src/components/DiaryModal.jsx
-import React, { useEffect, useState } from "react";
-import "./DiaryModal.css"
+import React, { useEffect, useMemo, useState } from "react";
+import "./DiaryModal.css";
+import { getMyCrops } from "../api/cropAPI";
 
 const DEFAULT_IMAGE =
   "data:image/svg+xml;utf8,%3Csvg xmlns%3D%22http%3A//www.w3.org/2000/svg%22 width%3D%22200%22 height%3D%22200%22 viewBox%3D%220 0 200 200%22%3E%3Crect width%3D%22200%22 height%3D%22200%22 rx%3D%2224%22 fill%3D%22%23e5f7ef%22/%3E%3Ctext x%3D%2250%25%22 y%3D%2255%25%22 dominant-baseline%3D%22middle%22 text-anchor%3D%22middle%22 font-size%3D%2272%22%3E%F0%9F%8C%B1%3C/text%3E%3C/svg%3E";
@@ -12,32 +12,48 @@ async function compressImage(file, maxSize = 1280, quality = 0.8) {
     fr.onerror = reject;
     fr.readAsDataURL(file);
   });
-
   const img = await new Promise((resolve, reject) => {
     const i = new Image();
     i.onload = () => resolve(i);
     i.onerror = reject;
     i.src = dataUrl;
   });
-
   const { width, height } = img;
   const ratio = Math.min(1, maxSize / Math.max(width, height));
   const w = Math.round(width * ratio);
   const h = Math.round(height * ratio);
-
   const canvas = document.createElement("canvas");
   canvas.width = w;
   canvas.height = h;
   const ctx = canvas.getContext("2d");
   ctx.drawImage(img, 0, 0, w, h);
-  return canvas.toDataURL("image/jpeg", quality);
+  const outDataUrl = canvas.toDataURL("image/jpeg", quality);
+  const byteString = atob(outDataUrl.split(",")[1]);
+  const mimeString = outDataUrl.split(",")[0].split(":")[1].split(";")[0];
+  const ab = new ArrayBuffer(byteString.length);
+  const ia = new Uint8Array(ab);
+  for (let i = 0; i < byteString.length; i++) ia[i] = byteString.charCodeAt(i);
+  const blob = new Blob([ab], { type: mimeString });
+  return { dataUrl: outDataUrl, blob };
 }
+
+const normalizeCrop = (c) => ({
+  id: c?.id ?? c?.data?.id ?? c?.crop?.id ?? null,
+  name: c?.name ?? c?.data?.name ?? c?.crop?.name ?? c?.title ?? c?.label ?? "",
+});
+
+const PRESET_COLORS = ["#ef4444", "#10b981", "#06b6d4", "#f59e0b", "#6366f1", "#a78bfa", "#14b8a6", "#94a3b8"];
 
 const DiaryModal = ({ open, onClose, onSave, initial, selectedPlant }) => {
   const [date, setDate] = useState("");
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
-  const [imageData, setImageData] = useState(DEFAULT_IMAGE);
+  const [type, setType] = useState("crop_diary");
+  const [cropId, setCropId] = useState("");
+  const [color, setColor] = useState("");
+  const [imagePreview, setImagePreview] = useState(DEFAULT_IMAGE);
+  const [imageFile, setImageFile] = useState(null);
+  const [crops, setCrops] = useState([]);
 
   useEffect(() => {
     if (!open) return;
@@ -45,14 +61,53 @@ const DiaryModal = ({ open, onClose, onSave, initial, selectedPlant }) => {
       setDate(initial.date || "");
       setTitle(initial.title || "");
       setContent(initial.content || "");
-      setImageData(initial.image || DEFAULT_IMAGE);
+      setType(initial.type || "crop_diary");
+      setCropId(
+        typeof initial.cropId === "number" || typeof initial.cropId === "string"
+          ? String(initial.cropId)
+          : ""
+      );
+      setColor(initial.color || "");
+      setImagePreview(initial.image || DEFAULT_IMAGE);
+      setImageFile(null);
     } else {
       setDate(new Date().toISOString().slice(0, 10));
       setTitle("");
       setContent("");
-      setImageData(DEFAULT_IMAGE);
+      setType("crop_diary");
+      setCropId("");
+      setColor("");
+      setImagePreview(DEFAULT_IMAGE);
+      setImageFile(null);
     }
   }, [open, initial]);
+
+  useEffect(() => {
+    if (!open) return;
+    (async () => {
+      try {
+        const res = await getMyCrops();
+        const list = Array.isArray(res) ? res : Array.isArray(res?.data) ? res.data : Array.isArray(res?.crops) ? res.crops : [];
+        setCrops(list.map(normalizeCrop).filter((c) => c.id && c.name));
+      } catch {}
+    })();
+  }, [open]);
+
+  const selectedCropId = useMemo(() => {
+    if (!selectedPlant) return "";
+    const found = crops.find((c) => c.name === selectedPlant);
+    return found?.id ? String(found.id) : "";
+  }, [crops, selectedPlant]);
+
+  useEffect(() => {
+    if (!open) return;
+    if (type === "crop_diary") {
+      if (selectedCropId) setCropId(selectedCropId);
+      else setCropId("");
+    } else {
+      setCropId("");
+    }
+  }, [selectedCropId, type, open]);
 
   if (!open) return null;
 
@@ -60,10 +115,11 @@ const DiaryModal = ({ open, onClose, onSave, initial, selectedPlant }) => {
     const file = e.target.files?.[0];
     if (!file) return;
     try {
-      const compressed = await compressImage(file);
-      setImageData(compressed);
-    } catch (err) {
-      console.error(err);
+      const { dataUrl, blob } = await compressImage(file);
+      setImagePreview(dataUrl);
+      const safe = file.name.replace(/\.[^.]+$/, "") + ".jpg";
+      setImageFile(new File([blob], safe, { type: "image/jpeg" }));
+    } catch {
       alert("이미지 처리 중 오류가 발생했습니다.");
     }
   };
@@ -73,17 +129,15 @@ const DiaryModal = ({ open, onClose, onSave, initial, selectedPlant }) => {
       alert("날짜와 제목을 입력해주세요.");
       return;
     }
-
-    // ✨ 수정 시 기존 id 유지
     const payload = {
-      id: initial?.id || Date.now(),
-      date,
       title,
       content,
-      image: imageData || DEFAULT_IMAGE,
-      plant: selectedPlant,
+      date,
+      type,
+      cropId: cropId ? Number(cropId) : undefined,
+      color: color || undefined,
+      imageFile: imageFile || undefined,
     };
-
     onSave(payload, Boolean(initial));
   };
 
@@ -95,39 +149,63 @@ const DiaryModal = ({ open, onClose, onSave, initial, selectedPlant }) => {
         <div className="modal-body">
           <div className="form-row">
             <input type="date" value={date} onChange={(e) => setDate(e.target.value)} />
-            <input
-              type="text"
-              placeholder="제목"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-            />
+            <input type="text" placeholder="제목" value={title} onChange={(e) => setTitle(e.target.value)} />
           </div>
 
-          <textarea
-            rows={5}
-            placeholder="내용을 입력하세요"
-            value={content}
-            onChange={(e) => setContent(e.target.value)}
-          />
+          <textarea rows={5} placeholder="내용을 입력하세요" value={content} onChange={(e) => setContent(e.target.value)} />
+
+          <div className="form-row three">
+            <select value={type} onChange={(e) => setType(e.target.value)}>
+              <option value="crop_diary">작물 일지</option>
+              <option value="personal">개인 일정</option>
+            </select>
+            <input
+              type="number"
+              placeholder="작물 ID (개인 일정은 비움)"
+              value={cropId}
+              onChange={(e) => setCropId(e.target.value)}
+              disabled={type === "crop_diary" && !!selectedCropId}
+            />
+            <div className="color-field">
+              <input
+                className="color-input"
+                type="text"
+                placeholder="색상 HEX (선택)"
+                value={color}
+                onChange={(e) => setColor(e.target.value)}
+              />
+              <input
+                className="native-color"
+                type="color"
+                value={/^#([0-9a-f]{6})$/i.test(color) ? color : "#047857"}
+                onChange={(e) => setColor(e.target.value)}
+                aria-label="색상 선택"
+              />
+            </div>
+          </div>
+
+          <div className="color-swatches">
+            {PRESET_COLORS.map((c) => (
+              <button
+                key={c}
+                type="button"
+                className={`swatch ${color === c ? "active" : ""}`}
+                style={{ background: c }}
+                onClick={() => setColor(c)}
+                aria-label={c}
+                title={c}
+              />
+            ))}
+          </div>
 
           <div className="image-uploader">
             <div className="image-box">
-              <img src={imageData || DEFAULT_IMAGE} alt="미리보기" className="image-preview" />
+              <img src={imagePreview} alt="미리보기" className="image-preview" />
             </div>
             <div className="image-actions">
               <label className="btn-ghost" htmlFor="journal-image-input">이미지 선택</label>
-              <input
-                id="journal-image-input"
-                type="file"
-                accept="image/*"
-                style={{ display: "none" }}
-                onChange={handleFileChange}
-              />
-              <button
-                type="button"
-                className="btn-danger"
-                onClick={() => setImageData(DEFAULT_IMAGE)}
-              >
+              <input id="journal-image-input" type="file" accept="image/*" style={{ display: "none" }} onChange={handleFileChange} />
+              <button type="button" className="btn-danger" onClick={() => { setImagePreview(DEFAULT_IMAGE); setImageFile(null); }}>
                 이미지 제거
               </button>
             </div>
@@ -140,9 +218,7 @@ const DiaryModal = ({ open, onClose, onSave, initial, selectedPlant }) => {
 
         <div className="modal-actions">
           <button className="btn-ghost" onClick={onClose}>취소</button>
-          <button className="btn-primary" onClick={handleSave}>
-            {initial ? "수정 완료" : "저장"}
-          </button>
+          <button className="btn-primary" onClick={handleSave}>{initial ? "수정 완료" : "저장"}</button>
         </div>
       </div>
     </div>

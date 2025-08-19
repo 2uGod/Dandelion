@@ -1,4 +1,5 @@
-import React, { useEffect, useState, useCallback } from "react";
+// src/pages/MyPage.jsx
+import React, { useEffect, useState, useCallback, useMemo } from "react";
 import "../styles/MyPage.css";
 import Header from "../components/Header";
 import PlantSidebar from "../components/PlantSidebar";
@@ -31,6 +32,18 @@ function getAuthToken() {
   );
 }
 
+async function fetchCrops(apiBase, getAuthHeader) {
+  const res = await fetch(`${apiBase}/crops`, {
+    headers: { accept: "application/json", ...(getAuthHeader ? getAuthHeader() : {}) },
+  });
+  if (!res.ok) return [];
+  const data = await res.json();
+  const list = Array.isArray(data?.data) ? data.data : Array.isArray(data) ? data : [];
+  return list
+    .map((c) => ({ id: c.id ?? c.cropId ?? c.crop_id, name: c.name ?? c.title ?? c.label }))
+    .filter((x) => x.id && x.name);
+}
+
 const MyPage = () => {
   const [selectedPlant, setSelectedPlant] = useState("공통");
   const [activeTab, setActiveTab] = useState("calendar");
@@ -38,7 +51,6 @@ const MyPage = () => {
   const [entries, setEntries] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingEntry, setEditingEntry] = useState(null);
-
   const [viewEntry, setViewEntry] = useState(null);
 
   const [tasks, setTasks] = useState([]);
@@ -47,10 +59,19 @@ const MyPage = () => {
   const [editTask, setEditTask] = useState(null);
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
 
+  const [crops, setCrops] = useState([]);
+
   const authHeader = useCallback(() => {
     const token = getAuthToken();
     return token ? { Authorization: `Bearer ${token}` } : {};
   }, []);
+
+  const cropMap = useMemo(() => new Map(crops.map((c) => [Number(c.id), c.name])), [crops]);
+  const selectedCropId = useMemo(() => {
+    if (selectedPlant === "공통") return null;
+    const found = crops.find((c) => c.name === selectedPlant);
+    return found ? Number(found.id) : null;
+  }, [crops, selectedPlant]);
 
   const loadLocal = useCallback(() => {
     try {
@@ -68,132 +89,161 @@ const MyPage = () => {
     } catch {}
   }, []);
 
-  const fetchDiaries = useCallback(async () => {
-    try {
-      const res = await fetch(`${API_BASE}/schedules`, {
+  const fetchAllSchedules = useCallback(
+    async (opt = {}) => {
+      const url = new URL(`${API_BASE}/schedules`);
+      if (opt.cropId) url.searchParams.set("cropId", String(opt.cropId));
+      const res = await fetch(url.toString(), {
         headers: { accept: "application/json", ...authHeader() },
       });
       if (!res.ok) throw new Error("fetch schedules failed");
       const data = await res.json();
-      const all = Array.isArray(data?.data) ? data.data : Array.isArray(data) ? data : [];
-      const list = all.filter((x) => String(x.type || "").toLowerCase() === "crop_diary");
-      if (list.length > 0) {
-        setEntries(list);
-        saveLocal(list, null);
-      } else {
+      const raw = Array.isArray(data?.schedules) ? data.schedules : Array.isArray(data) ? data : [];
+      return raw.map((x) => ({
+        id: x.id ?? x._id,
+        title: x.title ?? "",
+        content: x.content ?? "",
+        date: String(x.date || "").slice(0, 10),
+        image: x.image ?? null,
+        cropId: x.cropId ?? x.crop_id ?? x?.crop?.id ?? null,
+        color: x.color ?? null,
+        type: x.type ?? null,
+        plant: x?.crop?.name || cropMap.get(Number(x.cropId ?? x.crop_id)) || "공통",
+        createdAt: x.createdAt,
+        updatedAt: x.updatedAt,
+      }));
+    },
+    [authHeader, cropMap]
+  );
+
+  const fetchDiaries = useCallback(
+    async (cropId) => {
+      try {
+        const [all, cropList] = await Promise.all([
+          fetchAllSchedules(cropId ? { cropId } : {}),
+          crops.length ? Promise.resolve(crops) : fetchCrops(API_BASE, authHeader),
+        ]);
+        if (!crops.length) setCrops(cropList);
+        const diaries = all.filter((x) => x.type === "crop_diary");
+        setEntries(diaries);
+        saveLocal(diaries, null);
+      } catch {
         const fallback = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
         setEntries(Array.isArray(fallback) ? fallback : []);
       }
-    } catch {
-      const fallback = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
-      setEntries(Array.isArray(fallback) ? fallback : []);
-    }
-  }, [authHeader, saveLocal]);
+    },
+    [fetchAllSchedules, crops, authHeader, saveLocal]
+  );
 
-  const fetchSchedules = useCallback(async () => {
-    try {
-      const res = await fetch(`${API_BASE}/schedules`, {
-        headers: { accept: "application/json", ...authHeader() },
-      });
-      if (!res.ok) throw new Error("fetch schedules failed");
-      const data = await res.json();
-      const list = Array.isArray(data?.data) ? data.data : Array.isArray(data) ? data : [];
-      if (list.length > 0) {
-        setTasks(list);
-        saveLocal(null, list);
-      } else {
+  const fetchSchedules = useCallback(
+    async (cropId) => {
+      try {
+        const all = await fetchAllSchedules(cropId ? { cropId } : {});
+        setTasks(all);
+        saveLocal(null, all);
+      } catch {
         const fallback = JSON.parse(localStorage.getItem(TASKS_KEY) || "[]");
         setTasks(Array.isArray(fallback) ? fallback : []);
       }
-    } catch {
-      const fallback = JSON.parse(localStorage.getItem(TASKS_KEY) || "[]");
-      setTasks(Array.isArray(fallback) ? fallback : []);
-    }
-  }, [authHeader, saveLocal]);
+    },
+    [fetchAllSchedules, saveLocal]
+  );
 
   useEffect(() => {
     loadLocal();
-    fetchDiaries();
-    fetchSchedules();
-  }, [loadLocal, fetchDiaries, fetchSchedules]);
+    fetchCrops(API_BASE, authHeader).then(setCrops).catch(() => {});
+  }, [loadLocal, authHeader]);
+
+  useEffect(() => {
+    const cropId = selectedCropId || undefined; 
+    fetchDiaries(cropId);
+    fetchSchedules(cropId);
+  }, [selectedCropId, fetchDiaries, fetchSchedules]);
+
+  const isFileLike = (v) =>
+    v instanceof File || v instanceof Blob || (v && typeof v === "object" && typeof v.size === "number" && typeof v.type === "string");
 
   const handleSaveDiary = async (entry, isEdit) => {
-    const basePayload = {
-      title: entry.title,
-      content: entry.content,
-      date: entry.date,
-      cropId: entry.cropId,
-      type: "crop_diary",
-    };
+    const baseType =
+      entry?.type && (entry.type === "crop_diary" || entry.type === "personal")
+        ? entry.type
+        : (entry?.cropId || selectedCropId) ? "crop_diary" : "personal";
+
+    const resolvedCropId =
+      baseType === "personal" ? undefined : (entry.cropId ?? (selectedCropId ? Number(selectedCropId) : undefined));
+
+    const title = (entry.title || "").trim();
+    const date = String(entry.date || "").slice(0, 10);
+    const dateOk = /^\d{4}-\d{2}-\d{2}$/.test(date);
+    if (!title) return alert("제목은 필수입니다.");
+    if (!dateOk) return alert("날짜는 YYYY-MM-DD 형식이어야 합니다.");
+    if (baseType === "crop_diary" && !resolvedCropId) return alert("작물 일지에는 cropId가 필요합니다.");
+
+    const fd = new FormData();
+    fd.append("title", title);
+    fd.append("date", date);
+    fd.append("type", baseType);
+    if (entry.content) fd.append("content", entry.content);
+    if (resolvedCropId) fd.append("cropId", String(resolvedCropId));
+    if (entry.color) fd.append("color", String(entry.color));
+    if (isFileLike(entry.imageFile)) fd.append("image", entry.imageFile);
 
     try {
       if (isEdit && (entry.id || entry._id)) {
         const id = entry.id || entry._id;
-        const body = entry.imageFile
-          ? (() => {
-              const fd = new FormData();
-              if (basePayload.title) fd.append("title", basePayload.title);
-              if (basePayload.content) fd.append("content", basePayload.content);
-              if (basePayload.date) fd.append("date", basePayload.date);
-              if (basePayload.cropId) fd.append("cropId", String(basePayload.cropId));
-              fd.append("type", "crop_diary");
-              fd.append("image", entry.imageFile);
-              return fd;
-            })()
-          : JSON.stringify(basePayload);
-
-        const headers =
-          body instanceof FormData
-            ? { ...authHeader() }
-            : { "content-type": "application/json", ...authHeader() };
-
         const res = await fetch(`${API_BASE}/schedules/${id}`, {
           method: "PATCH",
-          headers,
-          body,
+          headers: { ...authHeader() },
+          body: fd,
         });
-        if (!res.ok) throw new Error("update diary failed");
+        if (!res.ok) {
+          const t = await res.text().catch(() => "");
+          throw new Error(t || "update diary failed");
+        }
       } else {
-        const body = entry.imageFile
-          ? (() => {
-              const fd = new FormData();
-              fd.append("title", basePayload.title || "");
-              if (basePayload.content) fd.append("content", basePayload.content);
-              fd.append("date", basePayload.date || "");
-              if (basePayload.cropId) fd.append("cropId", String(basePayload.cropId));
-              fd.append("type", "crop_diary");
-              if (entry.imageFile) fd.append("image", entry.imageFile);
-              return fd;
-            })()
-          : JSON.stringify(basePayload);
-
-        const headers =
-          body instanceof FormData
-            ? { ...authHeader() }
-            : { "content-type": "application/json", ...authHeader() };
-
         const res = await fetch(`${API_BASE}/schedules`, {
           method: "POST",
-          headers,
-          body,
+          headers: { ...authHeader() },
+          body: fd,
         });
-        if (!res.ok) throw new Error("create diary failed");
+        if (!res.ok) {
+          const t = await res.text().catch(() => "");
+          throw new Error(t || "create diary failed");
+        }
       }
-      await fetchDiaries();
+      await fetchDiaries(selectedCropId || undefined);
       setIsModalOpen(false);
       setEditingEntry(null);
     } catch {
-      if (isEdit) {
-        const local = entries.map((e) =>
-          (e.id ?? e._id) === (entry.id ?? entry._id) ? { ...e, ...basePayload, plant: entry.plant, image: entry.image } : e
-        );
-        setEntries(local);
-        saveLocal(local, null);
-      } else {
-        const local = [{ ...entry, ...basePayload, id: entry.id || Date.now() }, ...entries];
-        setEntries(local);
-        saveLocal(local, null);
-      }
+      const local = isEdit
+        ? entries.map((e) =>
+            (e.id ?? e._id) === (entry.id ?? entry._id)
+              ? {
+                  ...e,
+                  title,
+                  content: entry.content,
+                  date,
+                  cropId: resolvedCropId ?? null,
+                  color: entry.color ?? null,
+                  plant: cropMap.get(Number(resolvedCropId)) || "공통",
+                  image: isFileLike(entry.imageFile) ? e.image : (entry.image || e.image || null),
+                }
+              : e
+          )
+        : [
+            {
+              ...entry,
+              id: entry.id || Date.now(),
+              title,
+              date,
+              type: baseType,
+              cropId: resolvedCropId ?? null,
+              plant: cropMap.get(Number(resolvedCropId)) || "공통",
+            },
+            ...entries,
+          ];
+      setEntries(local);
+      saveLocal(local, null);
       setIsModalOpen(false);
       setEditingEntry(null);
     }
@@ -209,7 +259,7 @@ const MyPage = () => {
         headers: { ...authHeader() },
       });
       if (!res.ok) throw new Error("delete diary failed");
-      await fetchDiaries();
+      await fetchDiaries(selectedCropId || undefined);
       setViewEntry(null);
     } catch {
       const local = entries.filter((e) => (e.id ?? e._id) !== id);
@@ -225,40 +275,23 @@ const MyPage = () => {
   };
 
   const handleAddTask = async (newTask) => {
+    const fd = new FormData();
+    if (newTask.title) fd.append("title", newTask.title);
+    if (newTask.content) fd.append("content", newTask.content);
+    if (newTask.date) fd.append("date", newTask.date);
+    if (newTask.type) fd.append("type", newTask.type);
+    if (newTask.cropId) fd.append("cropId", String(newTask.cropId));
+    if (newTask.color) fd.append("color", newTask.color);
+    if (newTask.imageFile) fd.append("image", newTask.imageFile);
+
     try {
-      const body = newTask.imageFile
-        ? (() => {
-            const fd = new FormData();
-            if (newTask.title) fd.append("title", newTask.title);
-            if (newTask.content) fd.append("content", newTask.content);
-            if (newTask.date) fd.append("date", newTask.date);
-            if (newTask.type) fd.append("type", newTask.type);
-            if (newTask.cropId) fd.append("cropId", String(newTask.cropId));
-            if (newTask.color) fd.append("color", newTask.color);
-            fd.append("image", newTask.imageFile);
-            return fd;
-          })()
-        : JSON.stringify({
-            title: newTask.title,
-            content: newTask.content,
-            date: newTask.date,
-            type: newTask.type,
-            cropId: newTask.cropId,
-            color: newTask.color,
-          });
-
-      const headers =
-        body instanceof FormData
-          ? { ...authHeader() }
-          : { "content-type": "application/json", ...authHeader() };
-
       const res = await fetch(`${API_BASE}/schedules`, {
         method: "POST",
-        headers,
-        body,
+        headers: { ...authHeader() },
+        body: fd,
       });
       if (!res.ok) throw new Error("create schedule failed");
-      await fetchSchedules();
+      await fetchSchedules(selectedCropId || undefined);
       setActiveTab("calendar");
     } catch {
       const local = [{ ...newTask, id: Date.now() }, ...tasks];
@@ -283,7 +316,7 @@ const MyPage = () => {
         body: JSON.stringify(updated),
       });
       if (!res.ok) throw new Error("update schedule failed");
-      await fetchSchedules();
+      await fetchSchedules(selectedCropId || undefined);
       setIsTaskModalOpen(false);
     } catch {
       const local = tasks.map((t) => (t.id === updated.id ? { ...t, ...updated } : t));
@@ -301,7 +334,7 @@ const MyPage = () => {
         headers: { ...authHeader() },
       });
       if (!res.ok) throw new Error("delete schedule failed");
-      await fetchSchedules();
+      await fetchSchedules(selectedCropId || undefined);
       setIsTaskModalOpen(false);
     } catch {
       const local = tasks.filter((t) => t.id !== id);
@@ -315,13 +348,10 @@ const MyPage = () => {
     <div className="mypage-wrapper">
       <Header />
       <WeatherBar />
-
       <div className="mypage-body">
         <PlantSidebar selectedPlant={selectedPlant} setSelectedPlant={setSelectedPlant} />
-
         <main className="mypage-main">
           <NavTabs activeTab={activeTab} setActiveTab={setActiveTab} />
-
           {activeTab === "calendar" && (
             <MainCalendar
               plant={selectedPlant}
@@ -330,11 +360,19 @@ const MyPage = () => {
               onEventClick={openTaskModal}
             />
           )}
-
           {activeTab === "journal" && (
             <>
               <DiaryList
-                entries={entries}
+                selectedPlant={selectedPlant}
+                entries={
+                  selectedPlant === "공통"
+                    ? entries                     
+                    : entries.filter((e) =>    
+                        e.cropId
+                          ? Number(e.cropId) === Number(selectedCropId)
+                          : e.plant === selectedPlant
+                      )
+                }
                 setEntries={setEntries}
                 onEdit={(entry) => {
                   setEditingEntry(entry);
@@ -347,7 +385,6 @@ const MyPage = () => {
                 onDelete={handleDeleteDiary}
                 onView={(entry) => setViewEntry(entry)}
               />
-
               <DiaryModal
                 open={isModalOpen}
                 onClose={() => {
@@ -358,7 +395,6 @@ const MyPage = () => {
                 selectedPlant={selectedPlant}
                 onSave={handleSaveDiary}
               />
-
               <DiaryViewModal
                 open={!!viewEntry}
                 entry={viewEntry}
@@ -372,15 +408,12 @@ const MyPage = () => {
               />
             </>
           )}
-
           {activeTab === "plan" && (
             <PlanAdd selectedPlant={selectedPlant} initialDate={planDate} onAddTask={handleAddTask} />
           )}
-
           {activeTab === "settings" && <ProfileSettings />}
         </main>
       </div>
-
       <ScheduleEditModal
         open={isTaskModalOpen}
         task={editTask}
