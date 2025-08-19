@@ -23,11 +23,20 @@ const API_BASE = (() => {
   return (v || p || c || "http://localhost:3000").replace(/\/$/, "");
 })();
 
+function getTokenFromCookies() {
+  if (typeof document === "undefined") return "";
+  const m = document.cookie.match(/(?:^|;\s*)(Authorization|accessToken|token)=([^;]+)/i);
+  return m ? decodeURIComponent(m[2]) : "";
+}
+
 function getAuthToken() {
   return (
     localStorage.getItem("accessToken") ||
     localStorage.getItem("token") ||
     localStorage.getItem("Authorization") ||
+    sessionStorage.getItem("accessToken") ||
+    sessionStorage.getItem("token") ||
+    getTokenFromCookies() ||
     ""
   );
 }
@@ -43,6 +52,14 @@ async function fetchCrops(apiBase, getAuthHeader) {
     .map((c) => ({ id: c.id ?? c.cropId ?? c.crop_id, name: c.name ?? c.title ?? c.label }))
     .filter((x) => x.id && x.name);
 }
+
+const normalizeType = (t) => String(t || "").toLowerCase().replace(/[\s_-]/g, "");
+const isCropDiary = (obj) => {
+  const t = normalizeType(obj?.type);
+  if (t === "cropdiary") return true;
+  if (!t && (obj?.cropId || obj?.crop?.id)) return true;
+  return false;
+};
 
 const MyPage = () => {
   const [selectedPlant, setSelectedPlant] = useState("공통");
@@ -63,7 +80,9 @@ const MyPage = () => {
 
   const authHeader = useCallback(() => {
     const token = getAuthToken();
-    return token ? { Authorization: `Bearer ${token}` } : {};
+    if (!token) return {};
+    const value = /^Bearer\s+/i.test(token) ? token : `Bearer ${token}`;
+    return { Authorization: value };
   }, []);
 
   const cropMap = useMemo(() => new Map(crops.map((c) => [Number(c.id), c.name])), [crops]);
@@ -89,32 +108,54 @@ const MyPage = () => {
     } catch {}
   }, []);
 
-  const fetchAllSchedules = useCallback(
-    async (opt = {}) => {
-      const url = new URL(`${API_BASE}/schedules`);
-      if (opt.cropId) url.searchParams.set("cropId", String(opt.cropId));
-      const res = await fetch(url.toString(), {
-        headers: { accept: "application/json", ...authHeader() },
-      });
-      if (!res.ok) throw new Error("fetch schedules failed");
-      const data = await res.json();
-      const raw = Array.isArray(data?.schedules) ? data.schedules : Array.isArray(data) ? data : [];
-      return raw.map((x) => ({
+const fetchAllSchedules = useCallback(
+  async (opt = {}) => {
+    const url = new URL(`${API_BASE}/schedules`);
+    if (opt.cropId) url.searchParams.set("cropId", String(opt.cropId));
+    const res = await fetch(url.toString(), {
+      headers: { accept: "application/json", ...authHeader() },
+    });
+    if (!res.ok) throw new Error("fetch schedules failed");
+    const payload = await res.json();
+    const box = payload?.data ?? payload;
+    const list = Array.isArray(box?.schedules) ? box.schedules : (Array.isArray(box) ? box : []);
+    return list.map((x) => {
+      const cropId = x.cropId ?? x.crop_id ?? x?.crop?.id ?? null;
+      const d = x.date || x.createdAt || "";
+      return {
         id: x.id ?? x._id,
         title: x.title ?? "",
         content: x.content ?? "",
-        date: String(x.date || "").slice(0, 10),
+        date: String(d).slice(0, 10),
         image: x.image ?? null,
-        cropId: x.cropId ?? x.crop_id ?? x?.crop?.id ?? null,
+        cropId,
         color: x.color ?? null,
         type: x.type ?? null,
-        plant: x?.crop?.name || cropMap.get(Number(x.cropId ?? x.crop_id)) || "공통",
+        plant: x?.crop?.name || cropMap.get(Number(cropId)) || "공통",
         createdAt: x.createdAt,
         updatedAt: x.updatedAt,
-      }));
-    },
-    [authHeader, cropMap]
-  );
+        user: x.user ?? null,
+        crop: x.crop ?? null,
+      };
+    });
+  },
+  [authHeader, cropMap]
+);
+
+
+const fetchScheduleDetailById = useCallback(
+  async (id) => {
+    const res = await fetch(`${API_BASE}/schedules/${id}`, {
+      headers: { accept: "application/json", ...authHeader() },
+    });
+    if (!res.ok) throw new Error("fetch schedule detail failed");
+    const json = await res.json();
+    const s = json?.data?.schedule ?? json?.data ?? json?.schedule ?? json;
+    return s;
+  },
+  [authHeader]
+);
+
 
   const fetchDiaries = useCallback(
     async (cropId) => {
@@ -124,7 +165,7 @@ const MyPage = () => {
           crops.length ? Promise.resolve(crops) : fetchCrops(API_BASE, authHeader),
         ]);
         if (!crops.length) setCrops(cropList);
-        const diaries = all.filter((x) => x.type === "crop_diary");
+        const diaries = all.filter(isCropDiary);
         setEntries(diaries);
         saveLocal(diaries, null);
       } catch {
@@ -155,7 +196,7 @@ const MyPage = () => {
   }, [loadLocal, authHeader]);
 
   useEffect(() => {
-    const cropId = selectedCropId || undefined; 
+    const cropId = selectedCropId || undefined;
     fetchDiaries(cropId);
     fetchSchedules(cropId);
   }, [selectedCropId, fetchDiaries, fetchSchedules]);
@@ -165,24 +206,24 @@ const MyPage = () => {
 
   const handleSaveDiary = async (entry, isEdit) => {
     const baseType =
-      entry?.type && (entry.type === "crop_diary" || entry.type === "personal")
+      entry?.type && (normalizeType(entry.type) === "cropdiary" || normalizeType(entry.type) === "personal")
         ? entry.type
         : (entry?.cropId || selectedCropId) ? "crop_diary" : "personal";
 
     const resolvedCropId =
-      baseType === "personal" ? undefined : (entry.cropId ?? (selectedCropId ? Number(selectedCropId) : undefined));
+      normalizeType(baseType) === "personal" ? undefined : (entry.cropId ?? (selectedCropId ? Number(selectedCropId) : undefined));
 
     const title = (entry.title || "").trim();
     const date = String(entry.date || "").slice(0, 10);
     const dateOk = /^\d{4}-\d{2}-\d{2}$/.test(date);
     if (!title) return alert("제목은 필수입니다.");
     if (!dateOk) return alert("날짜는 YYYY-MM-DD 형식이어야 합니다.");
-    if (baseType === "crop_diary" && !resolvedCropId) return alert("작물 일지에는 cropId가 필요합니다.");
+    if (normalizeType(baseType) === "cropdiary" && !resolvedCropId) return alert("작물 일지에는 cropId가 필요합니다.");
 
     const fd = new FormData();
     fd.append("title", title);
     fd.append("date", date);
-    fd.append("type", baseType);
+    fd.append("type", normalizeType(baseType) === "cropdiary" ? "crop_diary" : "personal");
     if (entry.content) fd.append("content", entry.content);
     if (resolvedCropId) fd.append("cropId", String(resolvedCropId));
     if (entry.color) fd.append("color", String(entry.color));
@@ -195,6 +236,7 @@ const MyPage = () => {
           method: "PATCH",
           headers: { ...authHeader() },
           body: fd,
+          credentials: "include",
         });
         if (!res.ok) {
           const t = await res.text().catch(() => "");
@@ -205,6 +247,7 @@ const MyPage = () => {
           method: "POST",
           headers: { ...authHeader() },
           body: fd,
+          credentials: "include",
         });
         if (!res.ok) {
           const t = await res.text().catch(() => "");
@@ -225,8 +268,9 @@ const MyPage = () => {
                   date,
                   cropId: resolvedCropId ?? null,
                   color: entry.color ?? null,
-                  plant: cropMap.get(Number(resolvedCropId)) || "공통",
+                  plant: (selectedPlant !== "공통" ? selectedPlant : (e.plant || "공통")),
                   image: isFileLike(entry.imageFile) ? e.image : (entry.image || e.image || null),
+                  type: "cropdiary",
                 }
               : e
           )
@@ -236,9 +280,9 @@ const MyPage = () => {
               id: entry.id || Date.now(),
               title,
               date,
-              type: baseType,
+              type: "cropdiary",
               cropId: resolvedCropId ?? null,
-              plant: cropMap.get(Number(resolvedCropId)) || "공통",
+              plant: (selectedPlant !== "공통" ? selectedPlant : (entry.plant || "공통")),
             },
             ...entries,
           ];
@@ -257,6 +301,7 @@ const MyPage = () => {
       const res = await fetch(`${API_BASE}/schedules/${id}`, {
         method: "DELETE",
         headers: { ...authHeader() },
+        credentials: "include",
       });
       if (!res.ok) throw new Error("delete diary failed");
       await fetchDiaries(selectedCropId || undefined);
@@ -289,6 +334,7 @@ const MyPage = () => {
         method: "POST",
         headers: { ...authHeader() },
         body: fd,
+        credentials: "include",
       });
       if (!res.ok) throw new Error("create schedule failed");
       await fetchSchedules(selectedCropId || undefined);
@@ -306,17 +352,41 @@ const MyPage = () => {
     setIsTaskModalOpen(true);
   };
 
+  const toApiType = (t, hasCropId) => {
+    const nt = normalizeType(t);
+    if (nt === "personal") return "personal";
+    if (nt === "cropdiary" || hasCropId) return "crop_diary";
+    return "personal";
+  };
+
   const handleTaskUpdate = async (updated) => {
     try {
       const id = updated.id || updated._id;
       if (!id) return;
+
+      const date = updated.date ? String(updated.date).slice(0, 10) : undefined;
+      const fd = new FormData();
+      if (updated.title) fd.append("title", updated.title);
+      if (updated.content) fd.append("content", updated.content);
+      if (date) fd.append("date", date);
+      const resolvedCropId = updated.cropId ? Number(updated.cropId) : undefined;
+      const apiType = toApiType(updated.type, resolvedCropId);
+      if (apiType) fd.append("type", apiType);
+      if (resolvedCropId) fd.append("cropId", String(resolvedCropId));
+      if (updated.color) fd.append("color", updated.color);
+      if (updated.imageFile && (updated.imageFile instanceof File || updated.imageFile instanceof Blob)) fd.append("image", updated.imageFile);
+
       const res = await fetch(`${API_BASE}/schedules/${id}`, {
         method: "PATCH",
-        headers: { "content-type": "application/json", ...authHeader() },
-        body: JSON.stringify(updated),
+        headers: { ...authHeader() },
+        body: fd,
+        credentials: "include",
       });
       if (!res.ok) throw new Error("update schedule failed");
-      await fetchSchedules(selectedCropId || undefined);
+      await Promise.all([
+        fetchSchedules(selectedCropId || undefined),
+        fetchDiaries(selectedCropId || undefined),
+      ]);
       setIsTaskModalOpen(false);
     } catch {
       const local = tasks.map((t) => (t.id === updated.id ? { ...t, ...updated } : t));
@@ -332,9 +402,13 @@ const MyPage = () => {
       const res = await fetch(`${API_BASE}/schedules/${id}`, {
         method: "DELETE",
         headers: { ...authHeader() },
+        credentials: "include",
       });
       if (!res.ok) throw new Error("delete schedule failed");
-      await fetchSchedules(selectedCropId || undefined);
+      await Promise.all([
+        fetchSchedules(selectedCropId || undefined),
+        fetchDiaries(selectedCropId || undefined),
+      ]);
       setIsTaskModalOpen(false);
     } catch {
       const local = tasks.filter((t) => t.id !== id);
@@ -343,6 +417,45 @@ const MyPage = () => {
       setIsTaskModalOpen(false);
     }
   };
+
+  const handleOpenView = async (entry) => {
+    const id = entry?.id ?? entry?._id;
+    if (!id) {
+      setViewEntry(entry);
+      return;
+    }
+    try {
+      const s = await fetchScheduleDetailById(id);
+      const mapped = {
+        id: s.id ?? entry.id,
+        title: s.title ?? entry.title,
+        content: s.content ?? entry.content,
+        date: String(s.date || entry.date || "").slice(0, 10),
+        image: s.image ?? entry.image ?? null,
+        cropId: s.cropId ?? s.crop_id ?? s?.crop?.id ?? entry.cropId ?? null,
+        color: s.color ?? entry.color ?? null,
+        type: normalizeType(s.type) || entry.type || null,
+        plant: s?.crop?.name || cropMap.get(Number(s.cropId ?? s.crop_id)) || entry.plant || "공통",
+        createdAt: s.createdAt ?? entry.createdAt,
+        updatedAt: s.updatedAt ?? entry.updatedAt,
+        user: s.user ?? entry.user ?? null,
+        crop: s.crop ?? entry.crop ?? null,
+      };
+      setViewEntry(mapped);
+    } catch {
+      setViewEntry(entry);
+    }
+  };
+
+  const matchSelected = useCallback(
+    (e) => {
+      if (selectedPlant === "공통") return true;
+      if (selectedCropId) return Number(e.cropId) === Number(selectedCropId);
+      const name = (e.plant || e?.crop?.name || "").trim();
+      return name === selectedPlant;
+    },
+    [selectedPlant, selectedCropId]
+  );
 
   return (
     <div className="mypage-wrapper">
@@ -357,33 +470,33 @@ const MyPage = () => {
               plant={selectedPlant}
               tasks={tasks}
               onGoPlan={goPlanTabWithDate}
-              onEventClick={openTaskModal}
+              onEventClick={(t) => {
+                setEditTask(t);
+                setIsTaskModalOpen(true);
+              }}
             />
           )}
           {activeTab === "journal" && (
             <>
               <DiaryList
                 selectedPlant={selectedPlant}
-                entries={
-                  selectedPlant === "공통"
-                    ? entries                     
-                    : entries.filter((e) =>    
-                        e.cropId
-                          ? Number(e.cropId) === Number(selectedCropId)
-                          : e.plant === selectedPlant
-                      )
-                }
+                entries={entries.filter(matchSelected)}
                 setEntries={setEntries}
+                disableCreate={selectedPlant === "공통"}
                 onEdit={(entry) => {
                   setEditingEntry(entry);
                   setIsModalOpen(true);
                 }}
                 onAdd={() => {
+                  if (selectedPlant === "공통") {
+                    alert("작물을 먼저 선택한 뒤 일지를 작성해 주세요.");
+                    return;
+                  }
                   setEditingEntry(null);
                   setIsModalOpen(true);
                 }}
                 onDelete={handleDeleteDiary}
-                onView={(entry) => setViewEntry(entry)}
+                onView={handleOpenView}
               />
               <DiaryModal
                 open={isModalOpen}

@@ -1,139 +1,151 @@
 .diary-list {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
+  width: 100%;
 }
 
-.list-toolbar {
-  display: flex;
-  justify-content: flex-end;
-  align-items: center;
-}
-.toolbar-actions {
+.diary-list-toolbar {
   display: flex;
   align-items: center;
-  gap: 10px;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 8px 0 12px;
 }
-.write-button {
-  display: inline-flex;
+
+.diary-list-toolbar .left {
+  display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 8px 14px;
+  gap: 8px;
+}
+
+.diary-list-toolbar .list-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #111827;
+}
+
+.diary-list-toolbar .right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.diary-search {
+  height: 36px;
+  min-width: 260px;
+  padding: 0 12px;
+  border: 1px solid #e5e7eb;
   border-radius: 8px;
-  background: #047857;
-  border: none;
+  outline: none;
+  background: #fff;
+}
+
+.diary-order {
+  height: 36px;
+  padding: 0 10px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background: #fff;
+}
+
+.primary-btn {
+  height: 36px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 8px;
+  background: #16a34a;
   color: #fff;
   font-weight: 600;
   cursor: pointer;
-  transition: background 0.2s ease, transform 0.05s ease;
 }
 
-.write-button:hover { 
-  background: #036947; 
-}
-.write-button:active {
-  transform: translateY(1px);
+.primary-btn:disabled {
+  opacity: 0.5;
+  cursor: default;
 }
 
-.search-input {
-  width: 280px;
-  padding: 10px 12px;
-  border: 1px solid #e5e7eb;
-  border-radius: 8px;
-}
-
-.cards {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-  gap: 20px;
-}
-
-.card {
-  display: flex;
-  flex-direction: column;
-  background: #fff;
-  border: 1px solid #f0f2f4;
-  border-radius: 12px;
-  overflow: hidden;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.06);
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
-  cursor: pointer;        
-}
-.card:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 8px 16px rgba(0,0,0,0.08);
-}
-
-.card-image img {
-  width: 100%;
-  height: 160px;
-  object-fit: cover;
-  background: #eef6f0;
-}
-
-.card-body {
-  flex: 1;
-  padding: 12px 14px;
-}
-.card-body .title {
-  margin: 0 0 6px;
-  font-size: 16px;
-  font-weight: 700;
-  color: #111827;
-}
-.card-body .date {
-  margin: 0 0 8px;
-  font-size: 13px;
-  color: #6b7280;
-}
-
-.card-body .content {
-  margin: 0;
-  font-size: 14px;
-  color: #374151;
-  line-height: 1.5;
-  display: -webkit-box;
-  -webkit-line-clamp: 3;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-  word-break: break-word;
-}
-
-.card-footer {
-  display: flex;
-  justify-content: flex-end;
-  gap: 8px;
-  padding: 10px 14px;
-  border-top: 1px solid #f0f2f4;
-  background: #fafafa;
-}
-.card-btn {
-  padding: 6px 10px;
-  border-radius: 6px;
-  border: 1px solid #e5e7eb;
-  background: #f9fafb;
-  font-size: 12px;
-  cursor: pointer;
-}
-.card-btn:hover { background: #eef2f7; }
-.card-btn.danger {
-  border-color: #fca5a5;
-  background: #fee2e2;
-}
-
-.empty {
-  padding: 32px 16px;
-  text-align: center;
-  color: #6b7280;
+.diary-empty {
   border: 1px dashed #e5e7eb;
   border-radius: 12px;
+  padding: 20px 16px;
+  color: #6b7280;
   background: #fafafa;
 }
 
-.cards li,
+.diary-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 16px;
+}
+
 .diary-card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  background: #fff;
   cursor: pointer;
+  transition: box-shadow 0.15s ease;
+}
+
+.diary-card:hover {
+  box-shadow: 0 6px 16px rgba(0,0,0,0.06);
+}
+
+.card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.card-date {
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.card-chip {
+  font-size: 12px;
+  color: #065f46;
+  background: #ecfdf5;
+  border: 1px solid #d1fae5;
+  border-radius: 9999px;
+  padding: 2px 8px;
+}
+
+.card-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: #111827;
+  line-height: 1.3;
+}
+
+.card-thumb {
+  width: 100%;
+  height: 140px;
+  object-fit: cover;
+  border-radius: 10px;
+  border: 1px solid #f3f4f6;
+  background: #f9fafb;
+}
+
+.card-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 2px;
+}
+
+.card-actions > button {
+  height: 30px;
+  padding: 0 10px;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  background: #fff;
+  color: #374151;
+  cursor: pointer;
+}
+
+.card-actions > button:hover {
+  background: #f9fafb;
 }
