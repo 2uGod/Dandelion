@@ -88,7 +88,7 @@ async function fetchRelatedFromNcpms(mainLabel) {
       id: "leaf-spot",
       name: "잎 반점병",
       imageUrl:
-        "https://images.unsplash.com/photo-1545259741-2ea3ebf61fa3?q=80&w=800&auto=format&fit=crop",
+        "https://images.unsplash.com/photo-1545259741-2ea3ebf61fa3?q=80&w=1200&auto=format&fit=crop",
       summary:
         "잎 표면 갈색/흑갈 반점이 확산·융합됩니다. 고온다습 시 급속 진행.",
       tips: [
@@ -101,7 +101,7 @@ async function fetchRelatedFromNcpms(mainLabel) {
       id: "anthracnose",
       name: "탄저병",
       imageUrl:
-        "https://images.unsplash.com/photo-1589739906080-46f9c1fbdbb0?q=80&w=800&auto=format&fit=crop",
+        "https://images.unsplash.com/photo-1589739906080-46f9c1fbdbb0?q=80&w=1200&auto=format&fit=crop",
       summary:
         "수침성 반점이 진전되며 중앙부가 괴사/함몰. 잎·줄기·과실 침해.",
       tips: [
@@ -114,7 +114,7 @@ async function fetchRelatedFromNcpms(mainLabel) {
       id: "bacterial-blight",
       name: "세균성 점무늬",
       imageUrl:
-        "https://images.unsplash.com/photo-1568640347023-dffd6a6fa18b?q=80&w=800&auto=format&fit=crop",
+        "https://images.unsplash.com/photo-1568640347023-dffd6a6fa18b?q=80&w=1200&auto=format&fit=crop",
       summary:
         "작은 수침성 반점이 잎맥 따라 번질 수 있음. 물방울 튐·접촉으로 전염.",
       tips: [
@@ -127,6 +127,7 @@ async function fetchRelatedFromNcpms(mainLabel) {
 }
 
 const ACCEPT = "image/*";
+// ✅ 테스트용 큰 이미지 (API 없이도 채팅창에 바로 표시)
 
 export default function Pest() {
   // 업로드/예측
@@ -412,7 +413,13 @@ export default function Pest() {
           <div className="chat-scroll" ref={scrollRef} role="log" aria-live="polite">
             {chat.map((m, i) => (
               <div key={i} className={`bubble ${m.role} ${m.meta === "typing" ? "typing" : ""}`}>
-                {m.asMarkdown ? (
+                {/* ✅ 이미지 버블 우선 렌더링 */}
+                {m.imageUrl ? (
+                  <div className="bubble-inner">
+                    <img src={m.imageUrl} alt={m.text || "이미지"} className="bubble-img" />
+                    {m.text ? <div className="bubble-caption">{m.text}</div> : null}
+                  </div>
+                ) : m.asMarkdown ? (
                   <div
                     className="bubble-inner"
                     dangerouslySetInnerHTML={{ __html: mdToHtml(m.text) }}
