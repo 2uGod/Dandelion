@@ -49,7 +49,7 @@ async function compressImage(file, maxSize = 1280, quality = 0.8) {
   return { dataUrl: outDataUrl, blob };
 }
 
-const DiaryModal = ({ open, onClose, onSave, initial, selectedPlant }) => {
+const DiaryModal = ({ open, onClose, onSave, initial, selectedPlant, selectedCropId, crops = [] }) => {
   const [date, setDate] = useState("");
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
@@ -72,12 +72,12 @@ const DiaryModal = ({ open, onClose, onSave, initial, selectedPlant }) => {
       setDate(new Date().toISOString().slice(0, 10));
       setTitle("");
       setContent("");
-      setType("crop_diary");
+      setType(selectedPlant === "공통" ? "personal" : "crop_diary");
       setColor("");
       setImagePreview(DEFAULT_IMAGE);
       setImageFile(null);
     }
-  }, [open, initial]);
+  }, [open, initial, selectedPlant]);
 
   if (!open) return null;
 
@@ -99,6 +99,19 @@ const DiaryModal = ({ open, onClose, onSave, initial, selectedPlant }) => {
       alert("날짜와 제목을 입력해주세요.");
       return;
     }
+
+    let cropId;
+    if ((type || "crop_diary") === "crop_diary" && selectedPlant !== "공통") {
+      const byProp = typeof selectedCropId !== "undefined" ? selectedCropId : undefined;
+      const byList = !byProp && Array.isArray(crops) && crops.find(c => String(c.name).trim() === String(selectedPlant).trim())?.id;
+      const byInitial = initial?.cropId;
+      cropId = byProp ?? byList ?? byInitial ?? undefined;
+      if (!cropId) {
+        alert("작물 일지에는 cropId가 필요합니다.");
+        return;
+      }
+    }
+
     const payload = {
       id: initial?.id ?? initial?._id,
       title,
@@ -107,7 +120,9 @@ const DiaryModal = ({ open, onClose, onSave, initial, selectedPlant }) => {
       type,
       color: color || undefined,
       imageFile: imageFile || undefined,
+      cropId
     };
+
     onSave(payload, Boolean(initial));
   };
 

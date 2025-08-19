@@ -122,12 +122,15 @@ const MyPage = () => {
       return list.map((x) => {
         const cropId = x.cropId ?? x.crop_id ?? x?.crop?.id ?? null;
         const d = x.date || x.createdAt || "";
+        const imageUrl = x.image
+          ? (x.image.startsWith("http") ? x.image : `${API_BASE}${x.image}`)
+          : null;
         return {
           id: x.id ?? x._id,
           title: x.title ?? "",
           content: x.content ?? "",
           date: String(d).slice(0, 10),
-          image: x.image ?? null,
+          image: imageUrl,
           cropId,
           color: x.color ?? null,
           type: x.type ?? null,
@@ -199,6 +202,14 @@ const MyPage = () => {
     fetchSchedules(cropId);
   }, [selectedCropId, fetchDiaries, fetchSchedules]);
 
+  useEffect(() => {
+    if (selectedPlant !== "공통" && !selectedCropId) {
+      fetchCrops(API_BASE, authHeader).then((list) => {
+        setCrops(list);
+      }).catch(() => {});
+    }
+  }, [selectedPlant, selectedCropId, authHeader]);
+
   const isFileLike = (v) =>
     v instanceof File || v instanceof Blob || (v && typeof v === "object" && typeof v.size === "number" && typeof v.type === "string");
 
@@ -208,8 +219,16 @@ const MyPage = () => {
         ? entry.type
         : (entry?.cropId || selectedCropId) ? "crop_diary" : "personal";
 
+    const byNameId = (() => {
+      if (selectedPlant === "공통") return undefined;
+      const found = crops.find((c) => c.name === selectedPlant);
+      return found ? Number(found.id) : undefined;
+    })();
+
     const resolvedCropId =
-      normalizeType(baseType) === "personal" ? undefined : (entry.cropId ?? (selectedCropId ? Number(selectedCropId) : undefined));
+      normalizeType(baseType) === "personal"
+        ? undefined
+        : (entry.cropId ?? (selectedCropId ?? byNameId));
 
     const title = (entry.title || "").trim();
     const date = String(entry.date || "").slice(0, 10);
@@ -356,7 +375,6 @@ const MyPage = () => {
     try {
       const id = updated.id || updated._id;
       if (!id) return;
-
       const date = updated.date ? String(updated.date).slice(0, 10) : undefined;
       const fd = new FormData();
       if (updated.title) fd.append("title", updated.title);
@@ -421,7 +439,9 @@ const MyPage = () => {
         title: s.title ?? entry.title,
         content: s.content ?? entry.content,
         date: String(s.date || entry.date || "").slice(0, 10),
-        image: s.image ?? entry.image ?? null,
+        image: s.image
+          ? (s.image.startsWith("http") ? s.image : `${API_BASE}${s.image}`)
+          : null,
         cropId: s.cropId ?? s.crop_id ?? s?.crop?.id ?? entry.cropId ?? null,
         color: s.color ?? entry.color ?? null,
         type: normalizeType(s.type) || entry.type || null,
@@ -452,7 +472,18 @@ const MyPage = () => {
       <Header />
       <WeatherBar />
       <div className="mypage-body">
-        <PlantSidebar selectedPlant={selectedPlant} setSelectedPlant={setSelectedPlant} />
+        <PlantSidebar
+          selectedPlant={selectedPlant}
+          setSelectedPlant={setSelectedPlant}
+          onCropAdded={(c) => {
+            if (!c) return;
+            setCrops((prev) => {
+              const exists = prev.some((p) => Number(p.id) === Number(c.id) || p.name === c.name);
+              if (exists) return prev;
+              return [{ id: Number(c.id), name: c.name }, ...prev];
+            });
+          }}
+        />
         <main className="mypage-main">
           <NavTabs activeTab={activeTab} setActiveTab={setActiveTab} />
           {activeTab === "calendar" && (

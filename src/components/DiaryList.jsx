@@ -1,3 +1,4 @@
+// src/components/DiaryList.jsx
 import React, { useMemo, useState } from "react";
 import "./DiaryList.css";
 
@@ -10,7 +11,6 @@ export default function DiaryList({
   onView,
   setEntries,
   disableCreate = false,
-
 }) {
   const [query, setQuery] = useState("");
   const [order, setOrder] = useState("latest");
@@ -37,7 +37,9 @@ export default function DiaryList({
       <div className="diary-list-toolbar">
         <div className="left">
           <span className="list-title">
-            {selectedPlant === "공통" ? "농사일지(전체 모아보기)" : `농사일지(${selectedPlant})`}
+            {selectedPlant === "공통"
+              ? "농사일지(전체 모아보기)"
+              : `농사일지(${selectedPlant})`}
           </span>
         </div>
         <div className="right">
@@ -56,7 +58,9 @@ export default function DiaryList({
             <option value="oldest">오래된순</option>
           </select>
           {!disableCreate && (
-            <button className="primary-btn" onClick={onAdd}>일지 작성</button>
+            <button className="primary-btn" onClick={onAdd}>
+              일지 작성
+            </button>
           )}
         </div>
       </div>
@@ -70,16 +74,37 @@ export default function DiaryList({
       ) : (
         <ul className="diary-cards">
           {filtered.map((e) => (
-            <li key={e.id || `${e.date}-${e.title}`} className="diary-card" onClick={() => onView && onView(e)}>
+            <li
+              key={e.id || `${e.date}-${e.title}`}
+              className="diary-card"
+              onClick={() => onView && onView(e)}
+            >
               <div className="card-head">
                 <span className="card-date">{(e.date || "").slice(0, 10)}</span>
                 {e.plant && <span className="card-chip">{e.plant}</span>}
               </div>
               <div className="card-title">{e.title || "제목 없음"}</div>
+              <div className="card-content-preview">
+                {e.content || "내용 없음"}
+              </div>
               {e.image && <img className="card-thumb" src={e.image} alt="" />}
               <div className="card-actions">
-                <button onClick={(ev) => { ev.stopPropagation(); onEdit && onEdit(e); }}>수정</button>
-                <button onClick={(ev) => { ev.stopPropagation(); onDelete && onDelete(e); }}>삭제</button>
+                <button
+                  onClick={(ev) => {
+                    ev.stopPropagation();
+                    onEdit && onEdit(e);
+                  }}
+                >
+                  수정
+                </button>
+                <button
+                  onClick={(ev) => {
+                    ev.stopPropagation();
+                    onDelete && onDelete(e);
+                  }}
+                >
+                  삭제
+                </button>
               </div>
             </li>
           ))}

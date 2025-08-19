@@ -31,7 +31,7 @@ const normalizeCrop = (c) => {
   return { id, name, _raw: c };
 };
 
-const PlantSidebar = ({ selectedPlant, setSelectedPlant }) => {
+const PlantSidebar = ({ selectedPlant, setSelectedPlant, onCropAdded }) => {
   const [showPopup, setShowPopup] = useState(false);
   const [crops, setCrops] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -53,21 +53,19 @@ const PlantSidebar = ({ selectedPlant, setSelectedPlant }) => {
   const handleAdded = (newCropRaw) => {
     if (!newCropRaw) return setShowPopup(false);
     const added = normalizeCrop(newCropRaw);
-
     setCrops((prev) => [added, ...prev]);
     if (added.name) setSelectedPlant?.(added.name);
+    if (added.id || added.name) onCropAdded?.({ id: added.id, name: added.name });
     setShowPopup(false);
   };
 
   const handleDelete = async (idOrName) => {
     if (!window.confirm("정말 삭제하시겠어요?")) return;
-
     const backup = crops;
     const removed = backup.find(
       (c) => c.id === idOrName || c.name === idOrName
     );
     setCrops((prev) => prev.filter((c) => c !== removed));
-
     try {
       await deleteCrop(removed?.id ?? removed?.name);
       if (removed && selectedPlant === (removed.name ?? "")) {
