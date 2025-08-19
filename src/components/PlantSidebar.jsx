@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import PlantPopup from "./PlantPopup";
 import { getMyCrops, deleteCrop } from "../api/cropApi";
 import "./PlantSidebar.css";
-// import { FaTrash } from "react-icons/fa6";
+import { FaTrash } from "react-icons/fa";
 
 // 응답 배열 안전 추출
 const asArray = (data) => {
@@ -86,55 +86,71 @@ const PlantSidebar = ({ selectedPlant, setSelectedPlant }) => {
     <aside className="plant-sidebar">
       <h3>🌱 나의 작물</h3>
 
-      {loading ? (
+{loading ? (
         <div className="muted">불러오는 중…</div>
-      ) : crops.length === 0 ? (
-        <div className="empty-state" role="status" aria-live="polite">
-          <div className="empty-emoji" aria-hidden>
-            🌱
-          </div>
-          <p className="empty-title">아직 등록된 작물이 없어요</p>
-          <p className="empty-desc">
-            아래 <b>+ 작물 추가</b> 버튼을 눌러 첫 작물을 등록해 보세요.
-          </p>
-
-          <ul className="empty-tips">
-            <li>#토마토</li>
-            <li>#상추</li>
-            <li>#고추</li>
-          </ul>
-        </div>
       ) : (
-        <ul>
-          {crops.map((crop, idx) => {
-            const isSelected = selectedPlant === (crop.name ?? "");
-            const key = crop.id ?? crop.name ?? `row-${idx}`;
-            const displayName = crop.name || "(이름 없음)";
-            return (
-              <li key={key} className={isSelected ? "selected" : ""}>
-                <div className="row">
-                  <button
-                    type="button"
-                    className="name-btn"
-                    onClick={() => setSelectedPlant?.(crop.name ?? "")}
-                    title={displayName}
-                  >
-                    {displayName}
-                  </button>
-                  <button
-                    type="button"
-                    className="icon-btn danger"
-                    onClick={() => handleDelete(crop.id ?? crop.name)}
-                    aria-label="작물 삭제"
-                    title="삭제"
-                  >
-                    🗑️
-                  </button>
-                </div>
-              </li>
-            );
-          })}
-        </ul>
+        <>
+          <ul className="plant-list">
+            <li key="common" className={selectedPlant === "공통" ? "selected" : ""}>
+              <div className="row">
+                <button
+                  type="button"
+                  className="name-btn"
+                  onClick={() => setSelectedPlant?.("공통")}
+                  title="공통"
+                >
+                  공통
+                </button>
+              </div>
+            </li>
+            {crops.map((crop, idx) => {
+              const isSelected = selectedPlant === (crop.name ?? "");
+              const key = crop.id ?? crop.name ?? `row-${idx}`;
+              const displayName = crop.name || "(이름 없음)";
+              return (
+                <li key={key} className={isSelected ? "selected" : ""}>
+                  <div className="row">
+                    <button
+                      type="button"
+                      className="name-btn"
+                      onClick={() => setSelectedPlant?.(crop.name ?? "")}
+                      title={displayName}
+                    >
+                      {displayName}
+                    </button>
+                    <button
+                      type="button"
+                      className="icon-btn danger"
+                      onClick={() => handleDelete(crop.id ?? crop.name)}
+                      aria-label="작물 삭제"
+                      title="삭제"
+                    >
+                      <FaTrash />
+                    </button>
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+          
+          {crops.length === 0 && (
+            <div className="empty-state" role="status" aria-live="polite">
+              <div className="empty-emoji" aria-hidden>
+                🌱
+              </div>
+              <p className="empty-title">아직 등록된 작물이 없어요</p>
+              <p className="empty-desc">
+                아래 <b>+ 작물 추가</b> 버튼을 눌러 첫 작물을 등록해 보세요.
+              </p>
+
+              <ul className="empty-tips">
+                <li>#토마토</li>
+                <li>#상추</li>
+                <li>#고추</li>
+              </ul>
+            </div>
+          )}
+        </>
       )}
 
       <button

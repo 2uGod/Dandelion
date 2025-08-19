@@ -42,7 +42,7 @@ const Reservation = () => {
           } catch (e) {
             // JSON 파싱 실패시 기본값 사용
             reservationInfo = { description: post.content || '설명 없음' };
-            console.warn('체험 설명 파싱 실패:', e);
+            console.error('예약 정보 파싱 실패:', e);
           }
 
           const normalized = {
@@ -79,15 +79,11 @@ const Reservation = () => {
       let response;
       if (userProfile?.type === 'EXPERT') {
         // 전문가: 내가 올린 체험 글에 들어온 예약 신청 목록
-        console.log('전문가 - 받은 예약 조회 중...');
         response = await communityApi.getReceivedReservations();
       } else {
         // 일반 사용자: 본인이 신청한 예약 목록
-        console.log('일반 사용자 - 내 예약 조회 중...');
         response = await communityApi.getMyReservations();
       }
-
-      console.log('예약 목록 응답:', response);
 
       if (response && response.success) {
         const reservationsData = Array.isArray(response.data) ? response.data : [];
@@ -154,8 +150,6 @@ const Reservation = () => {
   // 전문가 체험 등록
   const handleCreateExp = async (exp) => {
     try {
-      console.log('체험 등록 데이터:', exp);
-
       // 예약 정보를 content에 구조화해서 포함
       const reservationInfo = {
         description: exp.desc,
@@ -172,11 +166,7 @@ const Reservation = () => {
         category: 'reservation'
       };
 
-      console.log('API 요청 데이터:', postData);
-
       const response = await communityApi.createPost(postData);
-
-      console.log('API 응답:', response);
 
       if (response && (response.success || response.data)) {
         alert("체험이 등록되었습니다.");
@@ -281,8 +271,8 @@ const Reservation = () => {
                                 const reservationInfo = JSON.parse(r.post.content);
                                 scheduledDate = reservationInfo.scheduledDate;
                               } catch (e) {
-                                console.log(e);
                                 // JSON 파싱 실패시 기본값 사용
+                                console.error('예약 정보 파싱 실패:', e);
                               }
                             }
                             return scheduledDate ? new Date(scheduledDate).toLocaleString('ko-KR') : '일정 미정';
@@ -344,7 +334,7 @@ const Reservation = () => {
                                 const reservationInfo = JSON.parse(r.post.content);
                                 scheduledDate = reservationInfo.scheduledDate;
                               } catch (e) {
-                                console.log(e);
+                                console.error('예약 정보 파싱 실패:', e);
                                 // JSON 파싱 실패시 기본값 사용
                               }
                             }
