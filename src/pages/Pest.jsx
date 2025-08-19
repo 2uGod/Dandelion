@@ -2,6 +2,8 @@ import React, { useCallback, useRef, useState, useEffect } from "react";
 import Header from "../components/Header";
 import "../styles/Pest.css";
 import { detectPest, askAiChat } from "../services/pestApi";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 const ACCEPT = "image/*";
 
@@ -14,21 +16,23 @@ function getHealthFlags(res) {
   return { isHealthy };
 }
 
-function formatDiseasesToText(diseases){
-  if(!diseases || diseases.length === 0){
+function formatDiseasesToText(diseases) {
+  if (!diseases || diseases.length === 0) {
     return "분석 결과를 찾을 수 없어요. 더 자세히 알려주세요.";
   }
   return diseases
-    .map(d => `### ${d.diseaseName}\n- **설명**: ${d.description}\n- **해결책**: ${d.solution}`)
-    .join('\n\n');
+    .map(
+      (d) =>
+        `### ${d.diseaseName}\n- **설명**: ${d.description}\n- **해결책**: ${d.solution}`
+    )
+    .join("\n\n");
 }
 
 export default function Pest() {
-  // 업로드/예측 상태
   const [file, setFile] = useState(null);
   const [previewUrl, setPreviewUrl] = useState("");
   const [result, setResult] = useState(null);
-  const [loading, setLoading] = useState(false); // 예측 로딩
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const inputRef = useRef(null);
 
@@ -37,12 +41,15 @@ export default function Pest() {
     { role: "assistant", text: "안녕하세요! 잎 사진을 올려주시면 병해충 여부를 간단히 살펴볼게요." },
   ]);
   const [userInput, setUserInput] = useState("");
-  const [sending, setSending] = useState(false); // 전송 잠금(중복 방지)
+  const [sending, setSending] = useState(false);
 
-  // 스크롤 제어
+  // 채팅 스크롤 제어
   const scrollRef = useRef(null);
   useEffect(() => {
-    scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
+    scrollRef.current?.scrollTo({
+      top: scrollRef.current.scrollHeight,
+      behavior: "smooth",
+    });
   }, [chat, loading]);
 
   // 언마운트 시 미리보기 URL 해제
@@ -95,7 +102,9 @@ export default function Pest() {
 
       const { isHealthy } = getHealthFlags(res);
       const confTxt =
-        typeof res?.confidence === "number" ? ` (신뢰도 ${(res.confidence * 100).toFixed(1)}%)` : "";
+        typeof res?.confidence === "number"
+          ? ` (신뢰도 ${(res.confidence * 100).toFixed(1)}%)`
+          : "";
 
       if (isHealthy) {
         setChat((prev) => [
@@ -132,8 +141,6 @@ export default function Pest() {
 
     try {
       const responseData = await askAiChat(text);
-      console.log("백엔드에서 받은 실제 데이터:", responseData);
-      
       const reply = formatDiseasesToText(responseData.data);
 
       setChat((prev) => {
@@ -156,6 +163,7 @@ export default function Pest() {
       setSending(false);
     }
   };
+
   const onKeyDown = (e) => {
     if (e.isComposing || e.nativeEvent.isComposing) return;
     if (e.key === "Enter" && !e.shiftKey) {
@@ -168,7 +176,7 @@ export default function Pest() {
     <div className="pest-page">
       <Header />
       <main className="pest-container">
-        {/* 왼쪽 업로드/결과 */}
+        {/* 왼쪽 업로드 */}
         <section className="left-panel">
           <h2 className="pest-title">병해충 이미지 진단</h2>
 
@@ -203,16 +211,13 @@ export default function Pest() {
               </figure>
             ) : (
               <button type="button" className="upload-cta" onClick={onClickUpload}>
-                <span className="upload-icon" aria-hidden>
-                  ⬆️
-                </span>
+                <span className="upload-icon">⬆️</span>
                 <span>
                   이미지를 드래그하거나 <strong>클릭해 업로드</strong>
                 </span>
                 <span className="upload-hint">JPG, PNG 등 이미지 파일 지원</span>
               </button>
             )}
-
             <input ref={inputRef} type="file" accept={ACCEPT} onChange={onChange} hidden />
           </div>
 
@@ -223,59 +228,22 @@ export default function Pest() {
           </div>
 
           {error && <div className="alert">{error}</div>}
-
-          {result && (
-            <div className="result">
-              <p className="result-title">예측 결과</p>
-              <div className="result-grid">
-                <div className="card">
-                  <h4>가장 유력</h4>
-                  <p className="pred-main">
-                    {result.label}
-                    {typeof result.confidence === "number" && (
-                      <span className="confidence">{`  •  ${(result.confidence * 100).toFixed(1)}%`}</span>
-                    )}
-                  </p>
-                </div>
-
-                {result.topK?.length > 0 && (
-                  <div className="card">
-                    <h4>다른 후보</h4>
-                    <ul className="topk">
-                      {result.topK.map((it, idx) => (
-                        <li key={idx}>
-                          <span className="label">{it.label}</span>
-                          {typeof it.score === "number" && (
-                            <span className="score">{(it.score * 100).toFixed(1)}%</span>
-                          )}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-
-                {result.tips?.length > 0 && (
-                  <div className="card">
-                    <h4>관리 팁</h4>
-                    <ul className="tips">
-                      {result.tips.map((t, i) => (
-                        <li key={i}>{t}</li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
         </section>
 
         {/* 오른쪽 채팅 */}
-        <section className="right-panel chat-panel">
+        <section className="chat-panel">
           <h3 className="chat-title">상담 채팅</h3>
-          <div className="chat-scroll" ref={scrollRef} role="log" aria-live="polite">
+          <div className="chat-scroll" ref={scrollRef}>
             {chat.map((m, i) => (
-              <div key={i} className={`bubble ${m.role} ${m.meta === "typing" ? "typing" : ""}`}>
-                <div className="bubble-inner">{m.text}</div>
+              <div
+                key={i}
+                className={`bubble ${m.role} ${m.meta === "typing" ? "typing" : ""}`}
+              >
+                <div className="bubble-inner">
+                  <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                    {m.text}
+                  </ReactMarkdown>
+                </div>
               </div>
             ))}
           </div>
