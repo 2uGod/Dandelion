@@ -69,13 +69,20 @@ function formatDiseasesToText(diseases) {
     .join("\n\n");
 }
 
-/** NCPMS: 관련 질병 3개 (사진 + 요약 + 팁) — 데모용 더미 데이터 */
+/** 질병명 리스트 추출 (답변에서 버튼/모달 연결용) */
+function extractDiseaseNames(arr) {
+  if (!Array.isArray(arr)) return [];
+  return arr.map((d) => d?.diseaseName).filter(Boolean);
+}
+
+/** NCPMS: 관련 질병 (사진 + 요약 + 팁) — 데모용 더미 데이터 */
 async function fetchRelatedFromNcpms(mainLabel) {
-  // TODO: 실제 NCPMS API로 교체
+  // 실제 연동 시:
   // const r = await fetch(`/api/ncpms/related?query=${encodeURIComponent(mainLabel)}`);
   // const json = await r.json();
   // return (json?.items || []).slice(0, 3);
 
+  // 데모용
   return [
     {
       id: "leaf-spot",
@@ -200,13 +207,13 @@ export default function Pest() {
       const confTxt =
         typeof res?.confidence === "number" ? ` (신뢰도 ${(res.confidence * 100).toFixed(1)}%)` : "";
 
+      // ❗️업로드/예측 응답에서는 '더 알아보기'를 노출하지 않는다.
       if (isHealthy) {
         setChat((prev) => [
           ...prev,
           {
             role: "assistant",
             text: `정상으로 보입니다${confTxt}. 다른 도움이 필요하신가요?`,
-            extra: { canMore: true, mainLabel: res?.label || "정상" },
           },
         ]);
       } else {
@@ -215,7 +222,6 @@ export default function Pest() {
           {
             role: "assistant",
             text: `${res.label ?? "병해충"}이(가) 의심됩니다${confTxt}. 관리 팁이 필요하신가요?`,
-            extra: { canMore: true, mainLabel: res?.label || "잎 반점병" },
           },
         ]);
       }
@@ -254,16 +260,26 @@ export default function Pest() {
 
     try {
       const responseData = await askAiChat(text);
-      const reply = formatDiseasesToText(responseData?.data);
 
+      // 1) 마크다운 텍스트 생성
+      const replyMarkdown = formatDiseasesToText(responseData?.data);
+
+      // 2) 질병명 리스트 (버튼/모달 연결용) — 채팅 답변인 경우에만 추출/사용
+      const names = extractDiseaseNames(responseData?.data);
+      const mainLabel = names[0] || "관련 질환";
+
+      // 3) 타이핑 메시지를 실제 답변으로 교체 + 더 알아보기 버튼 활성화(채팅 답변에만)
       setChat((prev) => {
         const next = [...prev];
         const idx = next.findIndex((m) => m.meta === "typing");
-        if (idx !== -1) {
-          next[idx] = { role: "assistant", text: reply, asMarkdown: true };
-        } else {
-          next.push({ role: "assistant", text: reply, asMarkdown: true });
-        }
+        const payload = {
+          role: "assistant",
+          text: replyMarkdown,
+          asMarkdown: true,
+          ...(names.length > 0 ? { extra: { canMore: true, mainLabel, names } } : {}),
+        };
+        if (idx !== -1) next[idx] = payload;
+        else next.push(payload);
         return next;
       });
     } catch (e) {
@@ -405,7 +421,7 @@ export default function Pest() {
                   <div className="bubble-inner">{m.text}</div>
                 )}
 
-                {/* 예측 응답에만 "더 알아보기" 버튼 */}
+                {/* 채팅 답변(assistant) 중 extra.canMore 가 있을 때만 버튼 표시 */}
                 {m.role === "assistant" && m.extra?.canMore && (
                   <div className="bubble-actions">
                     <button
