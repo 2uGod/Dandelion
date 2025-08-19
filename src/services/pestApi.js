@@ -1,41 +1,30 @@
-// 실제 API 연동 전까지 사용하는 테스트용 함수입니다.
-// 나중에 fetch로 교체하면 됩니다.
-// 사용 예: const res = await detectPest(file)
+// src/services/pestApi.js
 
-// Helper functions
-function sleep(ms) {
-  return new Promise(r => setTimeout(r, ms));
-}
+// AI 서버 주소가 올바르게 설정되어 있습니다.
+const API_URL = "http://127.0.0.1:5000";
 
-function shuffle(arr) {
-  return [...arr].sort(() => Math.random() - 0.5);
-}
-
+/**
+ * 이미지 파일을 받아 AI 서버에 예측을 요청하는 함수
+ * @param {File} file - 사용자가 업로드한 이미지 파일
+ * @returns {Promise<object>} - 예측 결과 객체
+ */
 export async function detectPest(file) {
-  // 파일 타입/크기 등 서버 요구조건 사전 검사 지점
-  await sleep(900); // 네트워크 대기 모사
+  const formData = new FormData();
+  // 'file'이라는 키로 이미지 파일을 담는 부분도 정확합니다.
+  formData.append("file", file); 
 
-  const labels = [
-    "잎마름병 (Leaf Blight)",
-    "흰가루병 (Powdery Mildew)",
-    "도열병 (Rice Blast)",
-    "진딧물 피해 (Aphids)",
-    "총채벌레 피해 (Thrips)"
-  ];
+  // Flask 서버의 '/predict' 주소로 요청을 보내는 부분도 완벽합니다.
+  const response = await fetch(`${API_URL}/predict`, {
+    method: "POST",
+    body: formData,
+  });
 
-  const mainIdx = Math.floor(Math.random() * labels.length);
-  const topK = shuffle(labels.filter((_, i) => i !== mainIdx))
-    .slice(0, 3)
-    .map((label, i) => ({ label, score: 0.42 - i * 0.08 }));
+  // 서버에서 에러가 발생했을 때 처리하는 로직도 잘 구현되어 있습니다.
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({ message: "알 수 없는 서버 오류" }));
+    throw new Error(errorData.error || "서버 요청에 실패했습니다.");
+  }
 
-  return {
-    label: labels[mainIdx],
-    confidence: 0.78,
-    topK,
-    tips: [
-      "의심 부위를 격리하고 전정 도구를 소독하세요.",
-      "초기 증상일 때는 생물농약/친환경 약제를 우선 검토하세요.",
-      "증상이 확산되면 라벨 기준에 맞는 약제를 사용하세요."
-    ],
-  };
+  // 성공 시, 결과를 JSON 형태로 반환합니다.
+  return response.json();
 }
