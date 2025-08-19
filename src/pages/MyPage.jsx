@@ -17,10 +17,17 @@ const STORAGE_KEY = "farmunity_diary_entries";
 const TASKS_KEY = "farmunity_tasks";
 
 const API_BASE = (() => {
-  const v = typeof import.meta !== "undefined" && import.meta.env && import.meta.env.VITE_API_BASE_URL;
-  const c = typeof window !== "undefined" && window.ENV && window.ENV.API_BASE_URL;
-  const p = typeof process !== "undefined" && process.env && (process.env.REACT_APP_API_BASE_URL || process.env.API_BASE_URL);
-  return (v || p || c || "http://localhost:3000").replace(/\/$/, "");
+  try {
+    // Vite 환경변수
+    const viteEnv = typeof import.meta !== "undefined" && import.meta?.env?.VITE_API_BASE_URL;
+    // 윈도우 객체 환경변수  
+    const windowEnv = typeof window !== "undefined" && window?.ENV?.API_BASE_URL;
+    
+    return (viteEnv || windowEnv || "http://localhost:3000").replace(/\/$/, "");
+  } catch (error) {
+    console.warn("API_BASE 설정 중 오류:", error);
+    return "http://localhost:3000";
+  }
 })();
 
 function getAuthToken() {
@@ -41,8 +48,8 @@ async function fetchCrops(apiBase, getAuthHeader) {
   // API 명세에 따르면 배열 형태로 직접 반환됨
   const list = Array.isArray(data) ? data : Array.isArray(data?.data) ? data.data : [];
   return list
-    .map((c) => ({ 
-      id: c.id, 
+    .map((c) => ({
+      id: c.id,
       name: c.name,
       variety: c.variety,
       plantingDate: c.plantingDate,
@@ -88,14 +95,18 @@ const MyPage = () => {
       const savedTasks = JSON.parse(localStorage.getItem(TASKS_KEY) || "[]");
       if (Array.isArray(savedEntries)) setEntries(savedEntries);
       if (Array.isArray(savedTasks)) setTasks(savedTasks);
-    } catch {}
+    } catch(e) {
+      console.error("❌ 로컬 데이터 로드 실패:", e);
+    }
   }, []);
 
   const saveLocal = useCallback((eList, tList) => {
     try {
       if (Array.isArray(eList)) localStorage.setItem(STORAGE_KEY, JSON.stringify(eList));
       if (Array.isArray(tList)) localStorage.setItem(TASKS_KEY, JSON.stringify(tList));
-    } catch {}
+    } catch(e) {
+      console.error("❌ 로컬 데이터 저장 실패:", e);
+    }
   }, []);
 
   const fetchAllSchedules = useCallback(
@@ -108,19 +119,19 @@ const MyPage = () => {
         // 메인 캘린더 조회 (모든 일정) - 우선 /schedules 엔드포인트 시도
         url = `${API_BASE}/schedules`;
       }
-      
-      
+
+
       const res = await fetch(url, {
         headers: { accept: "application/json", ...authHeader() },
       });
-      
+
       if (!res.ok) {
         const errorText = await res.text();
         throw new Error(`fetch schedules failed: ${res.status} - ${errorText}`);
       }
-      
+
       const data = await res.json();
-      
+
       // API 응답 구조에 따라 데이터 추출
       let schedules = [];
       if (Array.isArray(data)) {
@@ -137,20 +148,28 @@ const MyPage = () => {
         // 단일 객체인 경우 배열로 변환
         schedules = [data.data];
       }
-      
-      return schedules.map((x) => ({
-        id: x.id ?? x._id,
-        title: x.title ?? "",
-        content: x.content ?? "",
-        date: String(x.date || "").slice(0, 10),
-        image: x.image ?? null,
-        cropId: x.cropId ?? x.crop_id ?? x?.crop?.id ?? null,
-        color: x.color ?? null,
-        type: x.type ?? null,
-        plant: x?.crop?.name || cropMap.get(Number(x.cropId ?? x.crop_id)) || "공통",
-        createdAt: x.createdAt,
-        updatedAt: x.updatedAt,
-      }));
+
+      return schedules.map((x) => {
+        // 이미지 URL 처리 (상대 경로인 경우 절대 URL로 변환)
+        let imageUrl = x.image ?? null;
+        if (imageUrl && !imageUrl.startsWith('http') && !imageUrl.startsWith('data:')) {
+          imageUrl = `${API_BASE}${imageUrl.startsWith('/') ? '' : '/'}${imageUrl}`;
+        }
+
+        return {
+          id: x.id ?? x._id,
+          title: x.title ?? "",
+          content: x.content ?? "",
+          date: String(x.date || "").slice(0, 10),
+          image: imageUrl,
+          cropId: x.cropId ?? x.crop_id ?? x?.crop?.id ?? null,
+          color: x.color ?? null,
+          type: x.type ?? null,
+          plant: x?.crop?.name || cropMap.get(Number(x.cropId ?? x.crop_id)) || "공통",
+          createdAt: x.createdAt,
+          updatedAt: x.updatedAt,
+        };
+      });
     },
     [authHeader, cropMap]
   );
@@ -172,46 +191,6 @@ const MyPage = () => {
       }
     },
     [fetchAllSchedules, crops, authHeader, saveLocal]
-  );
-
-  const fetchCropCalendar = useCallback(
-    async (cropId, year, month) => {
-      try {
-        const url = `${API_BASE}/schedules/crop/${cropId}?year=${year}&month=${month}`;
-        const res = await fetch(url, {
-          headers: { accept: "application/json", ...authHeader() },
-        });
-        if (!res.ok) throw new Error("fetch crop calendar failed");
-        const data = await res.json();
-        
-        let schedules = [];
-        if (Array.isArray(data)) {
-          schedules = data;
-        } else if (data.success && Array.isArray(data.data)) {
-          schedules = data.data;
-        } else if (data.data && typeof data.data === 'object') {
-          schedules = [data.data];
-        }
-        
-        return schedules.map((x) => ({
-          id: x.id ?? x._id,
-          title: x.title ?? "",
-          content: x.content ?? "",
-          date: String(x.date || "").slice(0, 10),
-          image: x.image ?? null,
-          cropId: x.cropId ?? x.crop_id ?? x?.crop?.id ?? null,
-          color: x.color ?? null,
-          type: x.type ?? null,
-          plant: x?.crop?.name || cropMap.get(Number(x.cropId ?? x.crop_id)) || "공통",
-          createdAt: x.createdAt,
-          updatedAt: x.updatedAt,
-        }));
-      } catch (error) {
-        console.error("fetchCropCalendar error:", error);
-        return [];
-      }
-    },
-    [authHeader, cropMap]
   );
 
   const fetchSchedules = useCallback(
@@ -240,7 +219,7 @@ const MyPage = () => {
   useEffect(() => {
     const token = getAuthToken();
     if (token) {
-      const cropId = selectedCropId || undefined; 
+      const cropId = selectedCropId || undefined;
       fetchDiaries(cropId);
       fetchSchedules(cropId);
     }
@@ -268,7 +247,7 @@ const MyPage = () => {
     const fd = new FormData();
     fd.append("title", title);
     fd.append("date", date);
-    fd.append("type", baseType);
+    // type 필드 제거 - 백엔드에서 기본적으로 crop_diary로 설정됨
     if (entry.content) fd.append("content", entry.content);
     if (resolvedCropId) fd.append("cropId", String(resolvedCropId));
     if (entry.color) fd.append("color", String(entry.color));
@@ -297,6 +276,7 @@ const MyPage = () => {
           throw new Error(t || "create diary failed");
         }
       }
+      
       await fetchDiaries(selectedCropId || undefined);
       setIsModalOpen(false);
       setEditingEntry(null);
@@ -375,12 +355,12 @@ const MyPage = () => {
         headers: { ...authHeader() },
         body: fd,
       });
-      
+
       if (!res.ok) {
         const errorText = await res.text();
         throw new Error(`create schedule failed: ${res.status} ${res.statusText} - ${errorText}`);
       }
-      
+
       await fetchSchedules(selectedCropId || undefined);
       setActiveTab("calendar");
     } catch (error) {
@@ -388,6 +368,7 @@ const MyPage = () => {
       setTasks(local);
       saveLocal(null, local);
       setActiveTab("calendar");
+      console.error("❌ 일정 추가 실패:", error);
     }
   };
 
@@ -400,23 +381,24 @@ const MyPage = () => {
     try {
       const id = updated.id || updated._id;
       if (!id) return;
-      
+
       // API 명세에 따라 multipart/form-data 사용
       const fd = new FormData();
       if (updated.title) fd.append("title", updated.title);
       if (updated.content) fd.append("content", updated.content);
       if (updated.date) fd.append("date", updated.date);
-      if (updated.type) fd.append("type", updated.type);
+      // type 필드 제거 - 백엔드에서 기본적으로 crop_diary로 설정됨
       if (updated.cropId) fd.append("cropId", String(updated.cropId));
-      if (updated.color) fd.append("color", updated.color);
+      if (updated.color) fd.append("color", String(updated.color));
       if (isFileLike(updated.imageFile)) fd.append("image", updated.imageFile);
-      
+
       const res = await fetch(`${API_BASE}/schedules/${id}`, {
         method: "PATCH",
         headers: { ...authHeader() },
         body: fd,
       });
       if (!res.ok) throw new Error("update schedule failed");
+      
       await fetchSchedules(selectedCropId || undefined);
       setIsTaskModalOpen(false);
     } catch {
@@ -467,8 +449,8 @@ const MyPage = () => {
                 selectedPlant={selectedPlant}
                 entries={
                   selectedPlant === "공통"
-                    ? entries                     
-                    : entries.filter((e) =>    
+                    ? entries
+                    : entries.filter((e) =>
                         e.cropId
                           ? Number(e.cropId) === Number(selectedCropId)
                           : e.plant === selectedPlant
@@ -519,10 +501,10 @@ const MyPage = () => {
                 </div>
               </div>
             ) : (
-              <PlanAdd 
-                selectedPlant={selectedPlant} 
-                selectedCropId={selectedCropId} 
-                initialDate={planDate} 
+              <PlanAdd
+                selectedPlant={selectedPlant}
+                selectedCropId={selectedCropId}
+                initialDate={planDate}
                 onAddTask={handleAddTask}
                 onBack={() => setActiveTab("calendar")}
               />

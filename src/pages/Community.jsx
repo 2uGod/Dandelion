@@ -8,10 +8,22 @@ import {
   POST_CATEGORIES,
   COMMUNITY_CATEGORIES,
   SORT_OPTIONS,
-  PAGINATION,
-  HOT_KEYWORDS,
-  POPULAR_CATEGORIES
+  PAGINATION
 } from "../constants";
+
+const API_BASE = (() => {
+  try {
+    // Vite 환경변수
+    const viteEnv = typeof import.meta !== "undefined" && import.meta?.env?.VITE_API_BASE_URL;
+    // 윈도우 객체 환경변수  
+    const windowEnv = typeof window !== "undefined" && window?.ENV?.API_BASE_URL;
+    
+    return (viteEnv || windowEnv || "http://localhost:3000").replace(/\/$/, "");
+  } catch (error) {
+    console.warn("API_BASE 설정 중 오류:", error);
+    return "http://localhost:3000";
+  }
+})();
 
 const Community = () => {
   const [tab, setTab] = useState("전체");
@@ -23,6 +35,39 @@ const Community = () => {
   const [error, setError] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [popularTags, setPopularTags] = useState([]);
+
+  // 인기 태그 가져오기
+  const fetchPopularTags = useCallback(async () => {
+    try {
+      const token = localStorage.getItem("accessToken") || 
+                    localStorage.getItem("token") || 
+                    localStorage.getItem("Authorization");
+      
+      const headers = {
+        "Content-Type": "application/json",
+      };
+      
+      if (token) {
+        headers.Authorization = `Bearer ${token}`;
+      }
+
+      const response = await fetch(`${API_BASE}/tags/popular`, {
+        method: "GET",
+        headers
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        // API 응답 구조에 따라 태그 배열 추출
+        const tags = data.tags || data.data?.tags || data.data || [];
+        setPopularTags(Array.isArray(tags) ? tags : []);
+      }
+    } catch (error) {
+      console.error("인기 태그 조회 실패:", error);
+      setPopularTags([]);
+    }
+  }, []);
 
   // API에서 게시글 목록 가져오기
   const fetchPosts = useCallback(async () => {
@@ -71,6 +116,11 @@ const Community = () => {
   useEffect(() => {
     fetchPosts();
   }, [fetchPosts]);
+
+  // 인기 태그 로드
+  useEffect(() => {
+    fetchPopularTags();
+  }, [fetchPopularTags]);
 
   // 검색어 변경 시 페이지 리셋
   useEffect(() => {
@@ -178,27 +228,22 @@ const Community = () => {
         {/* 오른쪽 패널 */}
         <aside className="comm-right">
           <div className="box">
-            <h4>어제의 핫 키워드</h4>
-            <ol className="hot-list">
-              {HOT_KEYWORDS.map((k,i)=>(
-                <li key={k} onClick={()=>setQ(k)}>
-                  <span className="rank">{i+1}.</span>
-                  <span className="kw">{k}</span>
-                </li>
-              ))}
-            </ol>
-            <div className="box-actions">
-              <button className="mini" type="button">이전</button>
-              <button className="mini" type="button">다음</button>
-            </div>
-          </div>
-
-          <div className="box">
-            <h4>인기 카테고리</h4>
+            <h4>인기 태그</h4>
             <div className="chips">
-              {POPULAR_CATEGORIES.map(c=>(
-                <button key={c} className="chip" onClick={()=>setQ(c)} type="button">#{c}</button>
-              ))}
+              {popularTags.length > 0 ? (
+                popularTags.map(tag => (
+                  <button 
+                    key={tag.id || tag.name || tag} 
+                    className="chip" 
+                    onClick={() => setQ(tag.name || tag)} 
+                    type="button"
+                  >
+                    #{tag.name || tag}
+                  </button>
+                ))
+              ) : (
+                <div className="empty-tags">인기 태그가 없습니다</div>
+              )}
             </div>
           </div>
         </aside>

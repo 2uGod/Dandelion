@@ -6,8 +6,19 @@ import { useNavigate } from "react-router-dom";
 const Home = () => {
   const navigate = useNavigate();
 
+  const isLoggedIn = () => {
+    const token = localStorage.getItem("accessToken") || 
+                  localStorage.getItem("token") || 
+                  localStorage.getItem("Authorization");
+    return !!token;
+  };
+
   const handleStart = () => {
-    navigate("/Register");
+    if (isLoggedIn()) {
+      navigate("/MyPage");
+    } else {
+      navigate("/Login");
+    }
   };
 
   return (

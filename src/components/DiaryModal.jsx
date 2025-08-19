@@ -39,6 +39,7 @@ const DiaryModal = ({ open, onClose, onSave, initial, selectedPlant }) => {
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [imageData, setImageData] = useState(DEFAULT_IMAGE);
+  const [imageFile, setImageFile] = useState(null); // 새로 선택된 파일
 
   useEffect(() => {
     if (!open) return;
@@ -47,11 +48,13 @@ const DiaryModal = ({ open, onClose, onSave, initial, selectedPlant }) => {
       setTitle(initial.title || "");
       setContent(initial.content || "");
       setImageData(initial.image || DEFAULT_IMAGE);
+      setImageFile(null); // 기존 이미지는 파일이 아님
     } else {
       setDate(new Date().toISOString().slice(0, 10)); // 오늘
       setTitle("");
       setContent("");
       setImageData(DEFAULT_IMAGE);
+      setImageFile(null);
     }
   }, [open, initial]);
 
@@ -63,6 +66,7 @@ const DiaryModal = ({ open, onClose, onSave, initial, selectedPlant }) => {
     try {
       const compressed = await compressImage(file);
       setImageData(compressed);
+      setImageFile(file); // 새로 선택된 파일 저장
     } catch (err) {
       console.error(err);
       alert("이미지 처리 중 오류가 발생했습니다.");
@@ -80,6 +84,7 @@ const DiaryModal = ({ open, onClose, onSave, initial, selectedPlant }) => {
       title,
       content,
       image: imageData || DEFAULT_IMAGE,
+      imageFile: imageFile, // 새로 선택된 파일 (있는 경우에만)
       plant: selectedPlant,
     };
     onSave(payload, !!initial);
@@ -125,7 +130,10 @@ const DiaryModal = ({ open, onClose, onSave, initial, selectedPlant }) => {
               <button
                 type="button"
                 className="btn-danger"
-                onClick={() => setImageData(DEFAULT_IMAGE)}
+                onClick={() => {
+                  setImageData(DEFAULT_IMAGE);
+                  setImageFile(null);
+                }}
               >
                 이미지 제거
               </button>
