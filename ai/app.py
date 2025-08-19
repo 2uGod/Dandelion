@@ -12,7 +12,7 @@ app = Flask(__name__)
 CORS(app)
 
 # --- AI 모델 및 클래스 이름 설정 ---
-MODEL_PATH = 'best_chili_model.keras'
+MODEL_PATH = '/Users/leeyushin/Desktop/Dandelion/SW_FE(MAIN)/ai/best_chili_model.keras'
 
 # predict2.py와 동일하게, 모델이 학습한 영문 클래스 이름을 순서대로 정의합니다.
 CLASS_NAMES_ENG = [
