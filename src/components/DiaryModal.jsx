@@ -49,7 +49,15 @@ async function compressImage(file, maxSize = 1280, quality = 0.8) {
   return { dataUrl: outDataUrl, blob };
 }
 
-const DiaryModal = ({ open, onClose, onSave, initial, selectedPlant, selectedCropId, crops = [] }) => {
+const DiaryModal = ({
+  open,
+  onClose,
+  onSave,
+  initial,
+  selectedPlant,
+  selectedCropId,
+  crops = [],
+}) => {
   const [date, setDate] = useState("");
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
@@ -101,13 +109,17 @@ const DiaryModal = ({ open, onClose, onSave, initial, selectedPlant, selectedCro
     }
 
     let cropId;
-    if ((type || "crop_diary") === "crop_diary") {
-      const byInitial = initial?.cropId ?? initial?.crop?.id ?? undefined;
-      const byProp = typeof selectedCropId !== "undefined" ? selectedCropId : undefined;
-      const byList = Array.isArray(crops) && selectedPlant !== "공통"
-        ? crops.find(c => String(c.name).trim() === String(selectedPlant).trim())?.id
-        : undefined;
-      cropId = byInitial ?? byProp ?? byList ?? undefined;
+    if ((type || "crop_diary") === "crop_diary" && selectedPlant !== "공통") {
+      const byProp =
+        typeof selectedCropId !== "undefined" ? selectedCropId : undefined;
+      const byList =
+        !byProp &&
+        Array.isArray(crops) &&
+        crops.find(
+          (c) => String(c.name).trim() === String(selectedPlant).trim()
+        )?.id;
+      const byInitial = initial?.cropId;
+      cropId = byProp ?? byList ?? byInitial ?? undefined;
       if (!cropId) {
         alert("작물 일지에는 cropId가 필요합니다.");
         return;
@@ -122,13 +134,11 @@ const DiaryModal = ({ open, onClose, onSave, initial, selectedPlant, selectedCro
       type,
       color: color || undefined,
       imageFile: imageFile || undefined,
-      cropId
+      cropId,
     };
 
     onSave(payload, Boolean(initial));
   };
-
-  const currentPlantLabel = initial?.plant || initial?.crop?.name || selectedPlant || "작물 미선택";
 
   return (
     <div className="modal-overlay" onClick={onClose}>
@@ -136,7 +146,11 @@ const DiaryModal = ({ open, onClose, onSave, initial, selectedPlant, selectedCro
         <h3 className="modal-title">{initial ? "일지 수정" : "새 일지"}</h3>
         <div className="modal-body">
           <div className="form-row">
-            <input type="date" value={date} onChange={(e) => setDate(e.target.value)} />
+            <input
+              type="date"
+              value={date}
+              onChange={(e) => setDate(e.target.value)}
+            />
             <input
               type="text"
               placeholder="제목"
@@ -169,7 +183,11 @@ const DiaryModal = ({ open, onClose, onSave, initial, selectedPlant, selectedCro
               <input
                 className="native-color"
                 type="color"
-                value={/^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(color) ? color : "#16a34a"}
+                value={
+                  /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(color)
+                    ? color
+                    : "#16a34a"
+                }
                 onChange={(e) => setColor(e.target.value)}
               />
             </div>
@@ -190,10 +208,16 @@ const DiaryModal = ({ open, onClose, onSave, initial, selectedPlant, selectedCro
 
           <div className="image-uploader">
             <div className="image-box">
-              <img src={imagePreview} alt="미리보기" className="image-preview" />
+              <img
+                src={imagePreview}
+                alt="미리보기"
+                className="image-preview"
+              />
             </div>
             <div className="image-actions">
-              <label className="btn-ghost" htmlFor="journal-image-input">이미지 선택</label>
+              <label className="btn-ghost" htmlFor="journal-image-input">
+                이미지 선택
+              </label>
               <input
                 id="journal-image-input"
                 type="file"
@@ -215,12 +239,14 @@ const DiaryModal = ({ open, onClose, onSave, initial, selectedPlant, selectedCro
           </div>
 
           <div className="hint">
-            현재 선택 작물: <strong>{currentPlantLabel}</strong>
+            현재 선택 작물: <strong>{selectedPlant || "작물 미선택"}</strong>
           </div>
         </div>
 
         <div className="modal-actions">
-          <button className="btn-ghost" onClick={onClose}>취소</button>
+          <button className="btn-ghost" onClick={onClose}>
+            취소
+          </button>
           <button className="btn-primary" onClick={handleSave}>
             {initial ? "수정 완료" : "저장"}
           </button>

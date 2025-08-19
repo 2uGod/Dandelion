@@ -1,3 +1,4 @@
+// src/pages/MyPage.jsx
 import React, { useEffect, useState, useCallback, useMemo } from "react";
 import "../styles/MyPage.css";
 import Header from "../components/Header";
@@ -16,15 +17,24 @@ const STORAGE_KEY = "farmunity_diary_entries";
 const TASKS_KEY = "farmunity_tasks";
 
 const API_BASE = (() => {
-  const v = typeof import.meta !== "undefined" && import.meta.env && import.meta.env.VITE_API_BASE_URL;
-  const c = typeof window !== "undefined" && window.ENV && window.ENV.API_BASE_URL;
-  const p = typeof process !== "undefined" && process.env && (process.env.REACT_APP_API_BASE_URL || process.env.API_BASE_URL);
+  const v =
+    typeof import.meta !== "undefined" &&
+    import.meta.env &&
+    import.meta.env.VITE_API_BASE_URL;
+  const c =
+    typeof window !== "undefined" && window.ENV && window.ENV.API_BASE_URL;
+  const p =
+    typeof process !== "undefined" &&
+    process.env &&
+    (process.env.REACT_APP_API_BASE_URL || process.env.API_BASE_URL);
   return (v || p || c || "http://localhost:3000").replace(/\/$/, "");
 })();
 
 function getTokenFromCookies() {
   if (typeof document === "undefined") return "";
-  const m = document.cookie.match(/(?:^|;\s*)(Authorization|accessToken|token)=([^;]+)/i);
+  const m = document.cookie.match(
+    /(?:^|;\s*)(Authorization|accessToken|token)=([^;]+)/i
+  );
   return m ? decodeURIComponent(m[2]) : "";
 }
 
@@ -42,17 +52,30 @@ function getAuthToken() {
 
 async function fetchCrops(apiBase, getAuthHeader) {
   const res = await fetch(`${apiBase}/crops`, {
-    headers: { accept: "application/json", ...(getAuthHeader ? getAuthHeader() : {}) },
+    headers: {
+      accept: "application/json",
+      ...(getAuthHeader ? getAuthHeader() : {}),
+    },
   });
   if (!res.ok) return [];
   const data = await res.json();
-  const list = Array.isArray(data?.data) ? data.data : Array.isArray(data) ? data : [];
+  const list = Array.isArray(data?.data)
+    ? data.data
+    : Array.isArray(data)
+    ? data
+    : [];
   return list
-    .map((c) => ({ id: c.id ?? c.cropId ?? c.crop_id, name: c.name ?? c.title ?? c.label }))
+    .map((c) => ({
+      id: c.id ?? c.cropId ?? c.crop_id,
+      name: c.name ?? c.title ?? c.label,
+    }))
     .filter((x) => x.id && x.name);
 }
 
-const normalizeType = (t) => String(t || "").toLowerCase().replace(/[\s_-]/g, "");
+const normalizeType = (t) =>
+  String(t || "")
+    .toLowerCase()
+    .replace(/[\s_-]/g, "");
 const isCropDiary = (obj) => {
   const t = normalizeType(obj?.type);
   if (t === "cropdiary") return true;
@@ -84,7 +107,10 @@ const MyPage = () => {
     return { Authorization: value };
   }, []);
 
-  const cropMap = useMemo(() => new Map(crops.map((c) => [Number(c.id), c.name])), [crops]);
+  const cropMap = useMemo(
+    () => new Map(crops.map((c) => [Number(c.id), c.name])),
+    [crops]
+  );
   const selectedCropId = useMemo(() => {
     if (selectedPlant === "공통") return null;
     const found = crops.find((c) => c.name === selectedPlant);
@@ -93,7 +119,9 @@ const MyPage = () => {
 
   const loadLocal = useCallback(() => {
     try {
-      const savedEntries = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+      const savedEntries = JSON.parse(
+        localStorage.getItem(STORAGE_KEY) || "[]"
+      );
       const savedTasks = JSON.parse(localStorage.getItem(TASKS_KEY) || "[]");
       if (Array.isArray(savedEntries)) setEntries(savedEntries);
       if (Array.isArray(savedTasks)) setTasks(savedTasks);
@@ -102,8 +130,10 @@ const MyPage = () => {
 
   const saveLocal = useCallback((eList, tList) => {
     try {
-      if (Array.isArray(eList)) localStorage.setItem(STORAGE_KEY, JSON.stringify(eList));
-      if (Array.isArray(tList)) localStorage.setItem(TASKS_KEY, JSON.stringify(tList));
+      if (Array.isArray(eList))
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(eList));
+      if (Array.isArray(tList))
+        localStorage.setItem(TASKS_KEY, JSON.stringify(tList));
     } catch {}
   }, []);
 
@@ -117,12 +147,18 @@ const MyPage = () => {
       if (!res.ok) throw new Error("fetch schedules failed");
       const payload = await res.json();
       const box = payload?.data ?? payload;
-      const list = Array.isArray(box?.schedules) ? box.schedules : (Array.isArray(box) ? box : []);
+      const list = Array.isArray(box?.schedules)
+        ? box.schedules
+        : Array.isArray(box)
+        ? box
+        : [];
       return list.map((x) => {
         const cropId = x.cropId ?? x.crop_id ?? x?.crop?.id ?? null;
         const d = x.date || x.createdAt || "";
         const imageUrl = x.image
-          ? (x.image.startsWith("http") ? x.image : `${API_BASE}${x.image}`)
+          ? x.image.startsWith("http")
+            ? x.image
+            : `${API_BASE}${x.image}`
           : null;
         return {
           id: x.id ?? x._id,
@@ -162,7 +198,9 @@ const MyPage = () => {
       try {
         const [all, cropList] = await Promise.all([
           fetchAllSchedules(cropId ? { cropId } : {}),
-          crops.length ? Promise.resolve(crops) : fetchCrops(API_BASE, authHeader),
+          crops.length
+            ? Promise.resolve(crops)
+            : fetchCrops(API_BASE, authHeader),
         ]);
         if (!crops.length) setCrops(cropList);
         const diaries = all.filter(isCropDiary);
@@ -192,7 +230,9 @@ const MyPage = () => {
 
   useEffect(() => {
     loadLocal();
-    fetchCrops(API_BASE, authHeader).then(setCrops).catch(() => {});
+    fetchCrops(API_BASE, authHeader)
+      .then(setCrops)
+      .catch(() => {});
   }, [loadLocal, authHeader]);
 
   useEffect(() => {
@@ -201,40 +241,46 @@ const MyPage = () => {
     fetchSchedules(cropId);
   }, [selectedCropId, fetchDiaries, fetchSchedules]);
 
-  useEffect(() => {
-    if (selectedPlant !== "공통" && !selectedCropId) {
-      fetchCrops(API_BASE, authHeader).then((list) => {
-        setCrops(list);
-      }).catch(() => {});
-    }
-  }, [selectedPlant, selectedCropId, authHeader]);
-
   const isFileLike = (v) =>
-    v instanceof File || v instanceof Blob || (v && typeof v === "object" && typeof v.size === "number" && typeof v.type === "string");
+    v instanceof File ||
+    v instanceof Blob ||
+    (v &&
+      typeof v === "object" &&
+      typeof v.size === "number" &&
+      typeof v.type === "string");
+
+  const resolveCropIdForSave = useCallback(
+    async (baseType, entry) => {
+      if (normalizeType(baseType) === "personal") return undefined;
+      if (entry?.cropId) return Number(entry.cropId);
+      if (selectedCropId) return Number(selectedCropId);
+      const latest = await fetchCrops(API_BASE, authHeader);
+      if (!crops.length && latest.length) setCrops(latest);
+      const foundByName = latest.find((c) => c.name === selectedPlant);
+      return foundByName ? Number(foundByName.id) : undefined;
+    },
+    [selectedCropId, selectedPlant, crops.length, authHeader]
+  );
 
   const handleSaveDiary = async (entry, isEdit) => {
     const baseType =
-      entry?.type && (normalizeType(entry.type) === "cropdiary" || normalizeType(entry.type) === "personal")
+      entry?.type &&
+      (normalizeType(entry.type) === "cropdiary" ||
+        normalizeType(entry.type) === "personal")
         ? entry.type
-        : (entry?.cropId || selectedCropId) ? "crop_diary" : "personal";
+        : entry?.cropId || selectedCropId
+        ? "crop_diary"
+        : "personal";
 
-    const byNameId = (() => {
-      if (selectedPlant === "공통") return undefined;
-      const found = crops.find((c) => c.name === selectedPlant);
-      return found ? Number(found.id) : undefined;
-    })();
-
-    const resolvedCropId =
-      normalizeType(baseType) === "personal"
-        ? undefined
-        : (entry.cropId ?? (selectedCropId ?? byNameId));
+    const resolvedCropId = await resolveCropIdForSave(baseType, entry);
 
     const title = (entry.title || "").trim();
     const date = String(entry.date || "").slice(0, 10);
     const dateOk = /^\d{4}-\d{2}-\d{2}$/.test(date);
     if (!title) return alert("제목은 필수입니다.");
     if (!dateOk) return alert("날짜는 YYYY-MM-DD 형식이어야 합니다.");
-    if (normalizeType(baseType) === "cropdiary" && !resolvedCropId) return alert("작물 일지에는 cropId가 필요합니다.");
+    if (normalizeType(baseType) === "cropdiary" && !resolvedCropId)
+      return alert("작물 일지에는 cropId가 필요합니다.");
 
     const fd = new FormData();
     fd.append("title", title);
@@ -259,7 +305,10 @@ const MyPage = () => {
       } else {
         const fdCreate = new FormData();
         for (const [k, v] of fd.entries()) fdCreate.append(k, v);
-        fdCreate.append("type", normalizeType(baseType) === "cropdiary" ? "crop_diary" : "personal");
+        fdCreate.append(
+          "type",
+          normalizeType(baseType) === "cropdiary" ? "crop_diary" : "personal"
+        );
         if (entry.color) fdCreate.append("color", String(entry.color));
         const res = await fetch(`${API_BASE}/schedules`, {
           method: "POST",
@@ -286,8 +335,13 @@ const MyPage = () => {
                   date,
                   cropId: resolvedCropId ?? null,
                   color: entry.color ?? null,
-                  plant: (selectedPlant !== "공통" ? selectedPlant : (e.plant || "공통")),
-                  image: isFileLike(entry.imageFile) ? e.image : (entry.image || e.image || null),
+                  plant:
+                    selectedPlant !== "공통"
+                      ? selectedPlant
+                      : e.plant || "공통",
+                  image: isFileLike(entry.imageFile)
+                    ? e.image
+                    : entry.image || e.image || null,
                   type: "cropdiary",
                 }
               : e
@@ -300,7 +354,10 @@ const MyPage = () => {
               date,
               type: "cropdiary",
               cropId: resolvedCropId ?? null,
-              plant: (selectedPlant !== "공통" ? selectedPlant : (entry.plant || "공통")),
+              plant:
+                selectedPlant !== "공통"
+                  ? selectedPlant
+                  : entry.plant || "공통",
             },
             ...entries,
           ];
@@ -374,14 +431,21 @@ const MyPage = () => {
     try {
       const id = updated.id || updated._id;
       if (!id) return;
+
       const date = updated.date ? String(updated.date).slice(0, 10) : undefined;
       const fd = new FormData();
       if (updated.title) fd.append("title", updated.title);
       if (updated.content) fd.append("content", updated.content);
       if (date) fd.append("date", date);
-      const resolvedCropId = updated.cropId ? Number(updated.cropId) : undefined;
+      const resolvedCropId = updated.cropId
+        ? Number(updated.cropId)
+        : undefined;
       if (resolvedCropId) fd.append("cropId", String(resolvedCropId));
-      if (updated.imageFile && (updated.imageFile instanceof File || updated.imageFile instanceof Blob)) fd.append("image", updated.imageFile);
+      if (
+        updated.imageFile &&
+        (updated.imageFile instanceof File || updated.imageFile instanceof Blob)
+      )
+        fd.append("image", updated.imageFile);
 
       const res = await fetch(`${API_BASE}/schedules/${id}`, {
         method: "PATCH",
@@ -396,7 +460,9 @@ const MyPage = () => {
       ]);
       setIsTaskModalOpen(false);
     } catch {
-      const local = tasks.map((t) => (t.id === updated.id ? { ...t, ...updated } : t));
+      const local = tasks.map((t) =>
+        t.id === updated.id ? { ...t, ...updated } : t
+      );
       setTasks(local);
       saveLocal(null, local);
       setIsTaskModalOpen(false);
@@ -439,12 +505,18 @@ const MyPage = () => {
         content: s.content ?? entry.content,
         date: String(s.date || entry.date || "").slice(0, 10),
         image: s.image
-          ? (s.image.startsWith("http") ? s.image : `${API_BASE}${s.image}`)
+          ? s.image.startsWith("http")
+            ? s.image
+            : `${API_BASE}${s.image}`
           : null,
         cropId: s.cropId ?? s.crop_id ?? s?.crop?.id ?? entry.cropId ?? null,
         color: s.color ?? entry.color ?? null,
         type: normalizeType(s.type) || entry.type || null,
-        plant: s?.crop?.name || cropMap.get(Number(s.cropId ?? s.crop_id)) || entry.plant || "공통",
+        plant:
+          s?.crop?.name ||
+          cropMap.get(Number(s.cropId ?? s.crop_id)) ||
+          entry.plant ||
+          "공통",
         createdAt: s.createdAt ?? entry.createdAt,
         updatedAt: s.updatedAt ?? entry.updatedAt,
         user: s.user ?? entry.user ?? null,
@@ -474,14 +546,6 @@ const MyPage = () => {
         <PlantSidebar
           selectedPlant={selectedPlant}
           setSelectedPlant={setSelectedPlant}
-          onCropAdded={(c) => {
-            if (!c) return;
-            setCrops((prev) => {
-              const exists = prev.some((p) => Number(p.id) === Number(c.id) || p.name === c.name);
-              if (exists) return prev;
-              return [{ id: Number(c.id), name: c.name }, ...prev];
-            });
-          }}
         />
         <main className="mypage-main">
           <NavTabs activeTab={activeTab} setActiveTab={setActiveTab} />
@@ -526,8 +590,6 @@ const MyPage = () => {
                 }}
                 initial={editingEntry}
                 selectedPlant={selectedPlant}
-                selectedCropId={selectedCropId}
-                crops={crops}
                 onSave={handleSaveDiary}
               />
               <DiaryViewModal
@@ -544,7 +606,11 @@ const MyPage = () => {
             </>
           )}
           {activeTab === "plan" && (
-            <PlanAdd selectedPlant={selectedPlant} initialDate={planDate} onAddTask={handleAddTask} />
+            <PlanAdd
+              selectedPlant={selectedPlant}
+              initialDate={planDate}
+              onAddTask={handleAddTask}
+            />
           )}
           {activeTab === "settings" && <ProfileSettings />}
         </main>
