@@ -1,6 +1,6 @@
 // src/services/pestApi.js
+import axios from 'axios';
 
-// AI 서버 주소가 올바르게 설정되어 있습니다.
 const API_URL = "http://127.0.0.1:5000";
 
 /**
@@ -10,21 +10,38 @@ const API_URL = "http://127.0.0.1:5000";
  */
 export async function detectPest(file) {
   const formData = new FormData();
-  // 'file'이라는 키로 이미지 파일을 담는 부분도 정확합니다.
   formData.append("file", file); 
-
-  // Flask 서버의 '/predict' 주소로 요청을 보내는 부분도 완벽합니다.
+ 
   const response = await fetch(`${API_URL}/predict`, {
     method: "POST",
     body: formData,
   });
 
-  // 서버에서 에러가 발생했을 때 처리하는 로직도 잘 구현되어 있습니다.
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({ message: "알 수 없는 서버 오류" }));
     throw new Error(errorData.error || "서버 요청에 실패했습니다.");
   }
 
-  // 성공 시, 결과를 JSON 형태로 반환합니다.
   return response.json();
+}
+
+
+
+const NEST_API_URL = "http://localhost:3000";
+
+/**
+ * 텍스트를 받아 NestJS 서버에 질병 진단을 요청하는 함수
+ * @param {string} prompt - 사용자가 입력한 채팅 메시지
+ * @returns {Promise<Array>} - 질병 정보가 담긴 배열
+ */
+export async function askAiChat(prompt) {
+  try {
+    const response = await axios.post(`${NEST_API_URL}/ai/symptom-check`, {
+      prompt,
+    });
+    return response.data;
+  } catch (error) {
+    console.error("AI 채팅 요청 실패:", error);
+    throw error;
+  }
 }

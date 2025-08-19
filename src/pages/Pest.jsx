@@ -1,11 +1,10 @@
 import React, { useCallback, useRef, useState, useEffect } from "react";
 import Header from "../components/Header";
 import "../styles/Pest.css";
-import { detectPest } from "../services/pestApi";
+import { detectPest, askAiChat } from "../services/pestApi";
 
 const ACCEPT = "image/*";
 
-/** 서버 응답(result)에서 건강/이상 플래그 추출 */
 function getHealthFlags(res) {
   if (!res) return { isHealthy: null };
   if (typeof res.isHealthy === "boolean") return { isHealthy: res.isHealthy };
@@ -15,26 +14,13 @@ function getHealthFlags(res) {
   return { isHealthy };
 }
 
-/** ← 여기만 Gemini로 교체하면 됨 */
-async function askAssistant(userText, ctx) {
-  // TODO: Gemini API 연동 지점.
-  // return await gemini.ask({message: userText, context: ctx});
-  // 데모용 간단 응답:
-  const base =
-    "공유 감사합니다! 말씀하신 내용을 바탕으로 도와드릴게요. 필요한 경우 잎의 앞/뒷면 클로즈업도 첨부해 주세요.";
-  if (/물|수분|watering/i.test(userText)) {
-    return "물주기는 ‘겉흙 마름 → 충분 관수’가 기본이에요. 과습 시 잎 끝 갈변/노란 변색이 나타날 수 있으니 배수/통풍도 확인해 주세요.";
+function formatDiseasesToText(diseases){
+  if(!diseases || diseases.length === 0){
+    return "분석 결과를 찾을 수 없어요. 더 자세히 알려주세요.";
   }
-  if (/비료|영양|fertilizer/i.test(userText)) {
-    return "최근 비료를 주셨다면 2~3주 관찰 후 최소량으로 재시작해보세요. 염류 축적이 의심되면 충분 관수로 씻어내는 것도 방법입니다.";
-  }
-  if (/햇빛|광|조도|light/i.test(userText)) {
-    return "강한 직사는 화상을, 약한 광량은 연약 신장을 유발해요. 반그늘/간접광을 권장하고, 통풍 확보도 중요합니다.";
-  }
-  if (/해충|벌레|진딧|응애|thrips|mite|aphid/i.test(userText)) {
-    return "해충 의심 시 격리 후 잎 뒷면·새순을 집중 관찰하세요. 미지근한 물 샤워 → 알코올 솜 소면적 테스트 → 원예용 비누/오일(라벨 준수) 순으로 접근해요.";
-  }
-  return base;
+  return diseases
+    .map(d => `### ${d.diseaseName}\n- **설명**: ${d.description}\n- **해결책**: ${d.solution}`)
+    .join('\n\n');
 }
 
 export default function Pest() {
@@ -133,31 +119,31 @@ export default function Pest() {
     }
   };
 
-  // 한 번만 전송 + IME 중복 방지
   const handleSend = async () => {
     const text = userInput.trim();
     if (!text || sending) return;
     setSending(true);
 
-    // 1) 유저 메시지 추가
     setChat((prev) => [...prev, { role: "user", text }]);
     setUserInput("");
 
-    // 2) 타이핑 표시 추가
     const typingMessage = { role: "assistant", text: "입력 중…", meta: "typing" };
     setChat((prev) => [...prev, typingMessage]);
 
     try {
-      // 3) LLM 호출 (지금은 데모 함수, 나중에 Gemini로 교체)
-      const ctx = { result }; // 필요하면 더 담으세요
-      const reply = await askAssistant(text, ctx);
+      const responseData = await askAiChat(text);
+      console.log("백엔드에서 받은 실제 데이터:", responseData);
+      
+      const reply = formatDiseasesToText(responseData.data);
 
-      // 4) 타이핑 메시지를 실제 응답으로 교체
       setChat((prev) => {
         const next = [...prev];
         const idx = next.findIndex((m) => m.meta === "typing");
-        if (idx !== -1) next[idx] = { role: "assistant", text: reply };
-        else next.push({ role: "assistant", text: reply });
+        if (idx !== -1) {
+          next[idx] = { role: "assistant", text: reply };
+        } else {
+          next.push({ role: "assistant", text: reply });
+        }
         return next;
       });
     } catch (e) {
@@ -170,10 +156,8 @@ export default function Pest() {
       setSending(false);
     }
   };
-
-  // Enter 전송: Shift+Enter 줄바꿈, IME 조합 중이면 무시
   const onKeyDown = (e) => {
-    if (e.isComposing || e.nativeEvent.isComposing) return; // 한글 조합 중 방지
+    if (e.isComposing || e.nativeEvent.isComposing) return;
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       handleSend();
