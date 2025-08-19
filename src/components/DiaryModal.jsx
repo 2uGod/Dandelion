@@ -101,11 +101,13 @@ const DiaryModal = ({ open, onClose, onSave, initial, selectedPlant, selectedCro
     }
 
     let cropId;
-    if ((type || "crop_diary") === "crop_diary" && selectedPlant !== "공통") {
+    if ((type || "crop_diary") === "crop_diary") {
+      const byInitial = initial?.cropId ?? initial?.crop?.id ?? undefined;
       const byProp = typeof selectedCropId !== "undefined" ? selectedCropId : undefined;
-      const byList = !byProp && Array.isArray(crops) && crops.find(c => String(c.name).trim() === String(selectedPlant).trim())?.id;
-      const byInitial = initial?.cropId;
-      cropId = byProp ?? byList ?? byInitial ?? undefined;
+      const byList = Array.isArray(crops) && selectedPlant !== "공통"
+        ? crops.find(c => String(c.name).trim() === String(selectedPlant).trim())?.id
+        : undefined;
+      cropId = byInitial ?? byProp ?? byList ?? undefined;
       if (!cropId) {
         alert("작물 일지에는 cropId가 필요합니다.");
         return;
@@ -125,6 +127,8 @@ const DiaryModal = ({ open, onClose, onSave, initial, selectedPlant, selectedCro
 
     onSave(payload, Boolean(initial));
   };
+
+  const currentPlantLabel = initial?.plant || initial?.crop?.name || selectedPlant || "작물 미선택";
 
   return (
     <div className="modal-overlay" onClick={onClose}>
@@ -211,7 +215,7 @@ const DiaryModal = ({ open, onClose, onSave, initial, selectedPlant, selectedCro
           </div>
 
           <div className="hint">
-            현재 선택 작물: <strong>{selectedPlant || "작물 미선택"}</strong>
+            현재 선택 작물: <strong>{currentPlantLabel}</strong>
           </div>
         </div>
 

@@ -1,4 +1,3 @@
-// src/pages/MyPage.jsx
 import React, { useEffect, useState, useCallback, useMemo } from "react";
 import "../styles/MyPage.css";
 import Header from "../components/Header";
@@ -527,6 +526,8 @@ const MyPage = () => {
                 }}
                 initial={editingEntry}
                 selectedPlant={selectedPlant}
+                selectedCropId={selectedCropId}
+                crops={crops}
                 onSave={handleSaveDiary}
               />
               <DiaryViewModal
