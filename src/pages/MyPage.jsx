@@ -108,54 +108,52 @@ const MyPage = () => {
     } catch {}
   }, []);
 
-const fetchAllSchedules = useCallback(
-  async (opt = {}) => {
-    const url = new URL(`${API_BASE}/schedules`);
-    if (opt.cropId) url.searchParams.set("cropId", String(opt.cropId));
-    const res = await fetch(url.toString(), {
-      headers: { accept: "application/json", ...authHeader() },
-    });
-    if (!res.ok) throw new Error("fetch schedules failed");
-    const payload = await res.json();
-    const box = payload?.data ?? payload;
-    const list = Array.isArray(box?.schedules) ? box.schedules : (Array.isArray(box) ? box : []);
-    return list.map((x) => {
-      const cropId = x.cropId ?? x.crop_id ?? x?.crop?.id ?? null;
-      const d = x.date || x.createdAt || "";
-      return {
-        id: x.id ?? x._id,
-        title: x.title ?? "",
-        content: x.content ?? "",
-        date: String(d).slice(0, 10),
-        image: x.image ?? null,
-        cropId,
-        color: x.color ?? null,
-        type: x.type ?? null,
-        plant: x?.crop?.name || cropMap.get(Number(cropId)) || "공통",
-        createdAt: x.createdAt,
-        updatedAt: x.updatedAt,
-        user: x.user ?? null,
-        crop: x.crop ?? null,
-      };
-    });
-  },
-  [authHeader, cropMap]
-);
+  const fetchAllSchedules = useCallback(
+    async (opt = {}) => {
+      const url = new URL(`${API_BASE}/schedules`);
+      if (opt.cropId) url.searchParams.set("cropId", String(opt.cropId));
+      const res = await fetch(url.toString(), {
+        headers: { accept: "application/json", ...authHeader() },
+      });
+      if (!res.ok) throw new Error("fetch schedules failed");
+      const payload = await res.json();
+      const box = payload?.data ?? payload;
+      const list = Array.isArray(box?.schedules) ? box.schedules : (Array.isArray(box) ? box : []);
+      return list.map((x) => {
+        const cropId = x.cropId ?? x.crop_id ?? x?.crop?.id ?? null;
+        const d = x.date || x.createdAt || "";
+        return {
+          id: x.id ?? x._id,
+          title: x.title ?? "",
+          content: x.content ?? "",
+          date: String(d).slice(0, 10),
+          image: x.image ?? null,
+          cropId,
+          color: x.color ?? null,
+          type: x.type ?? null,
+          plant: x?.crop?.name || cropMap.get(Number(cropId)) || "공통",
+          createdAt: x.createdAt,
+          updatedAt: x.updatedAt,
+          user: x.user ?? null,
+          crop: x.crop ?? null,
+        };
+      });
+    },
+    [authHeader, cropMap]
+  );
 
-
-const fetchScheduleDetailById = useCallback(
-  async (id) => {
-    const res = await fetch(`${API_BASE}/schedules/${id}`, {
-      headers: { accept: "application/json", ...authHeader() },
-    });
-    if (!res.ok) throw new Error("fetch schedule detail failed");
-    const json = await res.json();
-    const s = json?.data?.schedule ?? json?.data ?? json?.schedule ?? json;
-    return s;
-  },
-  [authHeader]
-);
-
+  const fetchScheduleDetailById = useCallback(
+    async (id) => {
+      const res = await fetch(`${API_BASE}/schedules/${id}`, {
+        headers: { accept: "application/json", ...authHeader() },
+      });
+      if (!res.ok) throw new Error("fetch schedule detail failed");
+      const json = await res.json();
+      const s = json?.data?.schedule ?? json?.data ?? json?.schedule ?? json;
+      return s;
+    },
+    [authHeader]
+  );
 
   const fetchDiaries = useCallback(
     async (cropId) => {
@@ -223,10 +221,8 @@ const fetchScheduleDetailById = useCallback(
     const fd = new FormData();
     fd.append("title", title);
     fd.append("date", date);
-    fd.append("type", normalizeType(baseType) === "cropdiary" ? "crop_diary" : "personal");
     if (entry.content) fd.append("content", entry.content);
     if (resolvedCropId) fd.append("cropId", String(resolvedCropId));
-    if (entry.color) fd.append("color", String(entry.color));
     if (isFileLike(entry.imageFile)) fd.append("image", entry.imageFile);
 
     try {
@@ -243,10 +239,14 @@ const fetchScheduleDetailById = useCallback(
           throw new Error(t || "update diary failed");
         }
       } else {
+        const fdCreate = new FormData();
+        for (const [k, v] of fd.entries()) fdCreate.append(k, v);
+        fdCreate.append("type", normalizeType(baseType) === "cropdiary" ? "crop_diary" : "personal");
+        if (entry.color) fdCreate.append("color", String(entry.color));
         const res = await fetch(`${API_BASE}/schedules`, {
           method: "POST",
           headers: { ...authHeader() },
-          body: fd,
+          body: fdCreate,
           credentials: "include",
         });
         if (!res.ok) {
@@ -352,13 +352,6 @@ const fetchScheduleDetailById = useCallback(
     setIsTaskModalOpen(true);
   };
 
-  const toApiType = (t, hasCropId) => {
-    const nt = normalizeType(t);
-    if (nt === "personal") return "personal";
-    if (nt === "cropdiary" || hasCropId) return "crop_diary";
-    return "personal";
-  };
-
   const handleTaskUpdate = async (updated) => {
     try {
       const id = updated.id || updated._id;
@@ -370,10 +363,7 @@ const fetchScheduleDetailById = useCallback(
       if (updated.content) fd.append("content", updated.content);
       if (date) fd.append("date", date);
       const resolvedCropId = updated.cropId ? Number(updated.cropId) : undefined;
-      const apiType = toApiType(updated.type, resolvedCropId);
-      if (apiType) fd.append("type", apiType);
       if (resolvedCropId) fd.append("cropId", String(resolvedCropId));
-      if (updated.color) fd.append("color", updated.color);
       if (updated.imageFile && (updated.imageFile instanceof File || updated.imageFile instanceof Blob)) fd.append("image", updated.imageFile);
 
       const res = await fetch(`${API_BASE}/schedules/${id}`, {

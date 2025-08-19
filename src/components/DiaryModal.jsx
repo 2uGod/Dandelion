@@ -83,7 +83,7 @@ const DiaryModal = ({ open, onClose, onSave, initial, selectedPlant }) => {
       setImagePreview(dataUrl);
       const extSafeName = file.name.replace(/\.[^.]+$/, "") + ".jpg";
       setImageFile(new File([blob], extSafeName, { type: "image/jpeg" }));
-    } catch (err) {
+    } catch {
       alert("이미지 처리 중 오류가 발생했습니다.");
     }
   };
@@ -94,6 +94,7 @@ const DiaryModal = ({ open, onClose, onSave, initial, selectedPlant }) => {
       return;
     }
     const payload = {
+      id: initial?.id ?? initial?._id,
       title,
       content,
       date,
