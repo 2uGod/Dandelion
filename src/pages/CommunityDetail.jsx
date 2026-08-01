@@ -6,9 +6,36 @@ import { useAuth } from "../context/AuthContext";
 import EditModal from "../components/EditModal";
 import "../styles/Community.css";
 
+const API_BASE = (() => {
+  try {
+    // Vite 환경변수
+    const viteEnv = typeof import.meta !== "undefined" && import.meta?.env?.VITE_API_BASE_URL;
+    // 윈도우 객체 환경변수
+    const windowEnv = typeof window !== "undefined" && window?.ENV?.API_BASE_URL;
+
+    return (viteEnv || windowEnv || "http://localhost:3000").replace(/\/$/, "");
+  } catch (error) {
+    console.warn("API_BASE 설정 중 오류:", error);
+    return "http://localhost:3000";
+  }
+})();
+
 // initialComments 더미 데이터 제거 - API에서 가져옴
 
 const time = (iso) => new Date(iso).toLocaleString();
+
+// 이미지 URL 처리 함수
+const processImageUrl = (imageUrl) => {
+  if (!imageUrl) return null;
+  
+  // 이미 절대 URL인 경우 그대로 반환
+  if (imageUrl.startsWith('http') || imageUrl.startsWith('data:')) {
+    return imageUrl;
+  }
+  
+  // 상대 경로인 경우 API_BASE와 결합
+  return `${API_BASE}${imageUrl.startsWith('/') ? '' : '/'}${imageUrl}`;
+};
 
 export default function CommunityDetail(){
   const { id } = useParams();
@@ -49,6 +76,12 @@ export default function CommunityDetail(){
         const response = await communityApi.getPost(id);
         if (response.success) {
           const postData = response.data;
+          
+          // 이미지 URL 처리
+          if (postData.images && Array.isArray(postData.images)) {
+            postData.images = postData.images.map(img => processImageUrl(img)).filter(Boolean);
+          }
+          
           setPost(postData);
           setLikesCount(postData.likeCount || 0);
           setIsLiked(postData.isLiked || false);
@@ -237,6 +270,25 @@ export default function CommunityDetail(){
 
           <article className="detail-content">
             {post.content ? post.content.split("\n").map((line, i)=> <p key={i}>{line}</p>) : <p>내용이 없습니다.</p>}
+            
+            {/* 이미지 표시 */}
+            {!!(post.images && post.images.length) && (
+              <div className="post-images">
+                {post.images.map((src, i) => (
+                  <div key={i} className="image-container">
+                    <img 
+                      src={src} 
+                      alt={`게시글 이미지 ${i + 1}`} 
+                      className="post-image"
+                      onError={(e) => {
+                        console.error(`이미지 로드 실패: ${src}`);
+                        e.target.style.display = 'none';
+                      }}
+                    />
+                  </div>
+                ))}
+              </div>
+            )}
           </article>
 
           <div className="detail-actions">

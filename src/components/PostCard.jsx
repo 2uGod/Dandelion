@@ -4,6 +4,33 @@ import { POST_CATEGORIES, CATEGORY_ICONS } from '../constants';
 import { communityApi } from '../api/communityApi';
 import { useAuth } from '../context/AuthContext';
 
+const API_BASE = (() => {
+  try {
+    // Vite 환경변수
+    const viteEnv = typeof import.meta !== "undefined" && import.meta?.env?.VITE_API_BASE_URL;
+    // 윈도우 객체 환경변수
+    const windowEnv = typeof window !== "undefined" && window?.ENV?.API_BASE_URL;
+
+    return (viteEnv || windowEnv || "http://localhost:3000").replace(/\/$/, "");
+  } catch (error) {
+    console.warn("API_BASE 설정 중 오류:", error);
+    return "http://localhost:3000";
+  }
+})();
+
+// 이미지 URL 처리 함수
+const processImageUrl = (imageUrl) => {
+  if (!imageUrl) return null;
+  
+  // 이미 절대 URL인 경우 그대로 반환
+  if (imageUrl.startsWith('http') || imageUrl.startsWith('data:')) {
+    return imageUrl;
+  }
+  
+  // 상대 경로인 경우 API_BASE와 결합
+  return `${API_BASE}${imageUrl.startsWith('/') ? '' : '/'}${imageUrl}`;
+};
+
 function timeAgo(iso) {
   const diff = (Date.now() - new Date(iso).getTime()) / 1000;
   if (diff < 60) return `${Math.floor(diff)}초 전`;
@@ -112,9 +139,21 @@ const PostCard = ({ p }) => {
 
           {!!(p.images && p.images.length) && (
             <div className="thumb-grid">
-              {p.images.slice(0,4).map((src, i) => (
-                <img key={i} src={src} alt="" className="thumb" />
-              ))}
+              {p.images.slice(0,4).map((src, i) => {
+                const processedUrl = processImageUrl(src);
+                return processedUrl ? (
+                  <img 
+                    key={i} 
+                    src={processedUrl} 
+                    alt="" 
+                    className="thumb"
+                    onError={(e) => {
+                      console.error(`썸네일 이미지 로드 실패: ${processedUrl}`);
+                      e.target.style.display = 'none';
+                    }}
+                  />
+                ) : null;
+              })}
               {p.images.length > 4 && (
                 <div className="thumb more">+{p.images.length - 4}</div>
               )}
